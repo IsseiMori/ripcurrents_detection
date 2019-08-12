@@ -1,0 +1,77 @@
+#include <string>
+#include <iostream>
+
+#include <opencv2/opencv.hpp>
+
+#include "method.hpp"
+
+using namespace std;
+
+method::method (VideoCapture& _video, 
+				int _height) {
+	video = _video;
+	fps = video.get(CAP_PROP_FPS);
+
+	height = _height;
+	width = floor(video.get(cv::CAP_PROP_FRAME_WIDTH) * 
+			height / video.get(cv::CAP_PROP_FRAME_HEIGHT));
+
+}
+
+VideoWriter* method::ini_video_output (String video_name) {
+	
+	VideoWriter* video_output = new VideoWriter (video_name + ".mp4", 
+				  0x7634706d, 
+				  fps, cv::Size(width,height),true);
+	
+	if (!video_output->isOpened())
+	{
+		cout << "!!! Output video could not be opened" << endl;
+		return NULL;
+	}
+
+	return video_output;
+
+}
+
+void method::vector_to_color(Mat& curr, Mat& out_img) {
+
+	static float max_displacement = 0;
+	float max_displacement_new = 0;
+
+	float global_theta = 0;
+	float global_magnitude = 0;
+
+	for ( int row = 0; row < curr.rows; row++ ) {
+		Pixel2* ptr = curr.ptr<Pixel2>(row, 0);
+		Pixelc* ptr2 = out_img.ptr<Pixelc>(row, 0);
+
+		for ( int col = 0; col < curr.cols; col++ ) {
+			float theta = atan2(ptr->y, ptr->x)*180/M_PI;	// find angle
+			theta += theta < 0 ? 360 : 0;	// enforce strict positive angle
+			
+			// store vector data
+			ptr2->x = theta / 2;
+			ptr2->y = 255;
+			//ptr2->z = sqrt(ptr->x * ptr->x + ptr->y * ptr->y)*128/max_displacement+128;
+            ptr2->z = sqrt(ptr->x * ptr->x + ptr->y * ptr->y)*255/max_displacement;
+			// ptr2->z = 255;
+			//if ( ptr2->z < 30 ) ptr2->z = 0;
+
+			// store the previous max to maxmin next frame
+			if ( sqrt(ptr->x * ptr->x + ptr->y * ptr->y) > max_displacement_new ) max_displacement_new = sqrt(ptr->x * ptr->x + ptr->y * ptr->y);
+
+			global_theta += ptr2->x * ptr2->z;
+			global_magnitude += ptr2->z;
+
+
+			ptr++;
+			ptr2++;
+		}
+	}
+
+	max_displacement = max_displacement_new;
+
+	// show as hsv format
+	cvtColor(out_img, out_img, COLOR_HSV2BGR);
+}

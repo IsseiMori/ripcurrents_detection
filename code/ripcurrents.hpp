@@ -1,0 +1,5 @@
+#ifndef __RIPCURRENTS_HPP_INCLUDE__
+#define __RIPCURRENTS_HPP_INCLUDE__
+
+
+#endif
