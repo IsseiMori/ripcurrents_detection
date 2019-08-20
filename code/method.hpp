@@ -25,6 +25,7 @@ class method {
 		method (VideoCapture& _video, int _height);
 		VideoWriter* ini_video_output (String video_name);
 		void vector_to_color(Mat& curr, Mat& out_img);
+		void vector_to_dir_color(Mat& curr, Mat& out_img);
 
 		int ini_frame ();
 		int read_frame ();

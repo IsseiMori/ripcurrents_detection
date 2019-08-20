@@ -10,6 +10,7 @@
 #include "fn_grid_buoy.hpp"
 #include "fn_histgram.hpp"
 #include "fn_timex.hpp"
+#include "fn_dir_color.hpp"
 
 using namespace std;
 
@@ -55,6 +56,11 @@ int main(int argc, char **argv)
 		case 4: {
 			fn_timex timex = fn_timex (video, 480);
 			timex.run ();
+			break;
+		}
+		case 5: {
+			fn_dir_color dir_color = fn_dir_color (video, 480);
+			dir_color.run (100);
 			break;
 		}
 		default: {
