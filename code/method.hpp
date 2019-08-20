@@ -26,8 +26,9 @@ class method {
 		VideoWriter* ini_video_output (String video_name);
 		void vector_to_color(Mat& curr, Mat& out_img);
 
-		void run_optflow_FB ();
-		void ini_frame ();
-		void read_frame ();
+		int ini_frame ();
+		int read_frame ();
+
+		void drawFrameCount (Mat& outImg, int framecount);
 
 };

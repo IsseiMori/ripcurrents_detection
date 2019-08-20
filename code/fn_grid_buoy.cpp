@@ -178,30 +178,21 @@ void fn_grid_buoy::vertices_runFB (Mat& flow, Mat& out_img) {
 
 	int count = 0;
 	for (Pixel2& v : vertices) {
-		
-		/*
-		Pixel2* top_l = flow.ptr<Pixel2>(floor(v.x), floor(v.y));
-		Pixel2* top_r = flow.ptr<Pixel2>(ceil(v.x), floor(v.y));
-		Pixel2* bottom_l = flow.ptr<Pixel2>(floor(v.x), ceil(v.y));
-		Pixel2* bottom_r = flow.ptr<Pixel2>(ceil(v.x), ceil(v.y));
-		
-		Pixel2 top ((top_l->x + top_r->x)/2, (top_l->y + top_r->y)/2);
-		Pixel2 bottom ((bottom_l->x + bottom_r->x)/2, (bottom_l->y + bottom_r->y)/2);
-		
-		Pixel2 flow_vec = Pixel2 ((top.x + bottom.x)/2, (top.y + bottom.y)/2);
-		*/	
 
-		float x = flow.ptr<Pixel2>(floor(v.y), floor(v.x))->x;
-		float y = flow.ptr<Pixel2>(floor(v.y), floor(v.x))->y;
-		Pixel2* flow_vec = new Pixel2 (x,y);
-		
-		// cout << "floor " << floor(v.x) << " " << floor(v.y) << endl;
-		// cout << flow.ptr<Pixel2>(floor(v.x), floor(v.y))->x << endl;
-		// cout << count  << " : " << flow_vec->x << " " << flow_vec->y << endl;
-		float f_y = flow_vec->y == flow_vec->y? flow_vec->y:0;		
-		float f_x = flow_vec->x == flow_vec->x? flow_vec->x:0;
-		
+		int xind = floor(v.x);
+		int yind = floor(v.y);
+		float xrem = v.x - xind;
+		float yrem = v.y - yind;
 
+		Pixel2 flow_vec =	(*flow.ptr<Pixel2>(yind,xind)) * (1-xrem)*(1-yrem) +
+		(*flow.ptr<Pixel2>(yind,xind+1))	* (xrem)*(1-yrem) +
+		(*flow.ptr<Pixel2>(yind+1,xind))	* (1-xrem)*(yrem) +
+		(*flow.ptr<Pixel2>(yind+1,xind+1))	* (xrem)*(yrem) ;
+
+
+		float f_y = flow_vec.y == flow_vec.y? flow_vec.y:0;		
+		float f_x = flow_vec.x == flow_vec.x? flow_vec.x:0;
+		
 		vertices_next.push_back (Pixel2 (v.x + f_x * 10, v.y + f_y * 10));
 		++count;
 	}
@@ -245,12 +236,6 @@ void fn_grid_buoy::vertices_runFB (Mat& flow, Mat& out_img) {
 
 	// draw grid
 	for ( int i = 0; i < (int)vertices.size(); i++ ) {
-		/*
-		if (i == 0) {
-			cout << "000" << endl;
-			cout << Point(vertices_root[i+1].x,vertices_root[i+1].y) << endl;
-			cout << Point(vertices[i+1].x,vertices[i+1].y) << endl;
-		}*/
 
 		circle(out_img,Point(vertices_root[i].x,vertices_root[i].y),4,CV_RGB(0,0,100),-1,8,0);
 		circle(out_img,Point(vertices[i].x,vertices[i].y),4,CV_RGB(100,0,0),-1,8,0);

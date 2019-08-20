@@ -9,6 +9,7 @@
 #include "fn_timeline.hpp"
 #include "fn_grid_buoy.hpp"
 #include "fn_histgram.hpp"
+#include "fn_timex.hpp"
 
 using namespace std;
 
@@ -49,6 +50,11 @@ int main(int argc, char **argv)
 		case 3: {
 			fn_histgram hist = fn_histgram (video, 480);
 			hist.run();
+			break;
+		}
+		case 4: {
+			fn_timex timex = fn_timex (video, 480);
+			timex.run ();
 			break;
 		}
 		default: {
