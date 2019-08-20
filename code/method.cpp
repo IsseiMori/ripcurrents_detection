@@ -75,3 +75,27 @@ void method::vector_to_color(Mat& curr, Mat& out_img) {
 	// show as hsv format
 	cvtColor(out_img, out_img, COLOR_HSV2BGR);
 }
+
+// Load the previous frame
+// Named ini_frame because calling read_frame twice is confusing
+void method::ini_frame () {
+	read_frame();
+}
+
+void method::read_frame () {
+
+	Mat frame, grayscaled_frame;
+
+	curr_frame.copyTo (prev_frame);
+	video.read (frame);
+	if (frame.empty()) exit(1);
+	resize (frame, resized_frame, Size(width, height), 0, 0, INTER_LINEAR);
+	cvtColor (resized_frame, grayscaled_frame, COLOR_BGR2GRAY);
+	grayscaled_frame.copyTo(curr_frame);
+}
+
+void method::run_optflow_FB () {
+
+
+
+}

@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <math.h>
 
 #include <opencv2/opencv.hpp>
 
@@ -78,58 +79,33 @@ void fn_grid_buoy::runFB () {
 
 	VideoWriter* video_output = ini_video_output ("grid_buoy_FB");
 
-	Mat frame, resized_frame, grayscaled_frame;
-	Mat u_curr, u_prev;
-
-	video.read (frame);
-	if (frame.empty()) exit(1);
-	resize (frame, resized_frame, Size(width, height), 0, 0, INTER_LINEAR);
-	cvtColor (resized_frame, grayscaled_frame, COLOR_BGR2GRAY);
-	grayscaled_frame.copyTo(u_prev);
+	ini_frame ();
 
 	for (int framecount = 1; true; ++framecount) {
 
 		cout << "Frame " << framecount << endl;
 
-		video.read (frame);
-		if (frame.empty()) break;
-		resize (frame, resized_frame, Size(width, height), 0, 0, INTER_LINEAR);
-		cvtColor (resized_frame, grayscaled_frame, COLOR_BGR2GRAY);
-		grayscaled_frame.copyTo(u_curr);
+		read_frame();
 
+		calcOpticalFlowFarneback(prev_frame, curr_frame, flow, 0.5, 2, 20, 3, 15, 1.2, OPTFLOW_FARNEBACK_GAUSSIAN);
 		
+		Mat out_img_overlay;
+		resized_frame.copyTo(out_img_overlay);
+		Mat out_img = Mat::zeros(cv::Size(width, height), CV_8UC3);
 		
-		// Mat out_img_overlay;
-		// resized_frame.copyTo(out_img_overlay);
-
-		
-		
-		Mat u_flow;
-		calcOpticalFlowFarneback(u_prev, u_curr, u_flow, 0.5, 2, 20, 3, 15, 1.2, OPTFLOW_FARNEBACK_GAUSSIAN);
-		// Mat flow = u_flow.getMat(ACCESS_READ);
-
-		// cout << "f2 " << u_flow.getMat(ACCESS_RW).ptr<Pixel2>(680,192)->x << endl;
-
-		// Mat out_img = Mat::zeros(cv::Size(width, height), CV_8UC3);
-
-		// cout << "f2 " << u_flow.getMat(ACCESS_RW).ptr<Pixel2>(680,192)->x << endl;
-		
-		// vector_to_color (flow, out_img_overlay);
-		// addWeighted( out_img, 0.4, out_img_overlay, 0.6, 0.0, out_img);
+		vector_to_color (flow, out_img_overlay);
+		addWeighted( out_img, 0.4, out_img_overlay, 0.6, 0.0, out_img);
 
 	
-		vertices_runFB (u_flow, resized_frame);
+		vertices_runFB (flow, resized_frame);
 		
 		imshow ("grid_buoy", resized_frame);
-		// imshow ("color", out_img_overlay);
+		imshow ("color", out_img_overlay);
 		video_output->write (resized_frame);
 
-		u_curr.copyTo (u_prev);
 		if ( waitKey(1) == 27) break;
 
 	}
-
-	// flow.release();
 
 	// clean up
 	video_output->release();
@@ -269,8 +245,16 @@ void fn_grid_buoy::vertices_runFB (Mat& flow, Mat& out_img) {
 
 	// draw grid
 	for ( int i = 0; i < (int)vertices.size(); i++ ) {
-		circle(out_img,Point(vertices_root[i+1].x,vertices_root[i+1].y),4,CV_RGB(0,0,100),-1,8,0);
-		circle(out_img,Point(vertices[i+1].x,vertices[i+1].y),4,CV_RGB(100,0,0),-1,8,0);
+		/*
+		if (i == 0) {
+			cout << "000" << endl;
+			cout << Point(vertices_root[i+1].x,vertices_root[i+1].y) << endl;
+			cout << Point(vertices[i+1].x,vertices[i+1].y) << endl;
+		}*/
+
+		circle(out_img,Point(vertices_root[i].x,vertices_root[i].y),4,CV_RGB(0,0,100),-1,8,0);
+		circle(out_img,Point(vertices[i].x,vertices[i].y),4,CV_RGB(100,0,0),-1,8,0);
 		line(out_img,Point(vertices_root[i].x,vertices_root[i].y),Point(vertices[i].x,vertices[i].y),CV_RGB(100,0,0),2,8,0);
+	
 	}
 }

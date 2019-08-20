@@ -8,6 +8,7 @@
 
 #include "fn_timeline.hpp"
 #include "fn_grid_buoy.hpp"
+#include "fn_histgram.hpp"
 
 using namespace std;
 
@@ -21,14 +22,11 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	string out_filename = "out";
+	int option = 0;
 	if (argc >= 3)
 	{
-		out_filename = argv[2];
+		option =  stoi(argv[2]);
 	}
-
-	
-	int option = 2;
 
 	switch (option) {
 		case 0: {
@@ -45,8 +43,12 @@ int main(int argc, char **argv)
 		}
 		case 2: {
 			fn_grid_buoy g_buoy = fn_grid_buoy (video, 480, 20, 20);
-			cout << g_buoy.width << endl;
 			g_buoy.runFB();
+			break;
+		}
+		case 3: {
+			fn_histgram hist = fn_histgram (video, 480);
+			hist.run();
 			break;
 		}
 		default: {
