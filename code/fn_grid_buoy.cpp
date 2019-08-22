@@ -8,11 +8,13 @@
 
 using namespace std;
 
-fn_grid_buoy::fn_grid_buoy (VideoCapture& _video, 
+fn_grid_buoy::fn_grid_buoy (string _file_name, 
 							int _height,
-							int v_count,
-							int h_count)
-							: method(_video, _height) {
+							int _v_count,
+							int _h_count)
+							: method(_file_name, _height), 
+							v_count(_v_count), 
+							h_count(_h_count) {
 
 	// define the distance between each vertices
 	float diff_x = width  / (h_count + 1);
@@ -32,7 +34,8 @@ fn_grid_buoy::fn_grid_buoy (VideoCapture& _video,
 void fn_grid_buoy::runLK () {
 	cout << "Running grid buoy (LK)" << endl;
 
-	VideoWriter* video_output = ini_video_output ("grid_buoy_LK");
+	VideoWriter* video_output = ini_video_output (file_name +  "_grid_buoy_LK_"
+		+ to_string(v_count) + "_" + to_string(h_count));
 
 	ini_frame ();
 
@@ -66,7 +69,8 @@ void fn_grid_buoy::runLK () {
 void fn_grid_buoy::runFB () {
 	cout << "Running grid buoy (FB)" << endl;
 
-	VideoWriter* video_output = ini_video_output ("grid_buoy_FB");
+	VideoWriter* video_output = ini_video_output (file_name + "_grid_buoy_FB_"
+		+ to_string(v_count) + "_" + to_string(h_count));
 
 	ini_frame ();
 

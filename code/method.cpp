@@ -7,9 +7,18 @@
 
 using namespace std;
 
-method::method (VideoCapture& _video, 
+method::method (string _file_name, 
 				int _height) {
-	video = _video;
+
+	file_name = _file_name;
+
+	video = cv::VideoCapture(file_name);
+	if (!video.isOpened())
+	{
+		cout << file_name << " File not found" << endl;
+		exit(1);
+	}
+
 	fps = video.get(CAP_PROP_FPS);
 
 	height = _height;
@@ -18,7 +27,7 @@ method::method (VideoCapture& _video,
 
 }
 
-VideoWriter* method::ini_video_output (String video_name) {
+VideoWriter* method::ini_video_output (string video_name) {
 	
 	VideoWriter* video_output = new VideoWriter (video_name + ".mp4", 
 				  0x7634706d, 

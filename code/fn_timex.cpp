@@ -8,15 +8,15 @@
 
 using namespace std;
 
-fn_timex::fn_timex (VideoCapture& _video, 
-							int _height)
-							: method(_video, _height) {
+fn_timex::fn_timex (string _file_name, 
+					int _height)
+					: method(_file_name, _height) {
 }
 
 void fn_timex::run (int buffer_size) {
 	cout << "Running timex " << endl;
 
-	VideoWriter* video_output = ini_video_output ("timex");
+	VideoWriter* video_output = ini_video_output (file_name + "_timex_" + to_string(buffer_size));
 
 	Mat sum_rgb = Mat::zeros(height,width,CV_32FC3);
 

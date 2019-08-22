@@ -7,7 +7,7 @@
 
 using namespace std;
 
-void mouse_callback(int event, int x, int y, int flags, void *userdata)
+void mouse_callback(int event, int x, int y, int, void *userdata)
 {
     if (event == EVENT_LBUTTONDOWN) {
 		cout << x << " " << y << endl;
@@ -22,15 +22,12 @@ void mouse_callback(int event, int x, int y, int flags, void *userdata)
     }
 }
 
-fn_timeline::fn_timeline (VideoCapture& _video, 
-					int _height,
-					int _v_num): method(_video, _height), v_num(_v_num){
+fn_timeline::fn_timeline (string file_name, 
+					int _height): method(file_name, _height) {
 }
 
-void fn_timeline::run () {
+void fn_timeline::run (int v_num) {
 	cout << "Running timeline" << endl;
-
-	VideoWriter* video_output = ini_video_output ("timelines");
 
 	ini_frame();
 
@@ -47,6 +44,12 @@ void fn_timeline::run () {
 
 	add_timeline (*st_ed.first, *st_ed.second, v_num);
 
+	VideoWriter* video_output = ini_video_output (file_name +  "_timelines_" 
+		+ to_string(static_cast<int>(st_ed.first->x)) + "_" 
+		+ to_string(static_cast<int>(st_ed.first->y)) + "_"
+		+ to_string(static_cast<int>(st_ed.second->x)) + "_" 
+		+ to_string(static_cast<int>(st_ed.second->y)) + "_"
+		+ to_string(v_num));
 
 	for (int framecount = 1; true; ++framecount) {
 

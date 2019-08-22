@@ -10,7 +10,7 @@ using namespace std;
 class fn_timex: public method {
 	private:
 	public:
-		fn_timex (VideoCapture& _video,
+		fn_timex (string _file_name,
 					 int _height);
 
 		/*

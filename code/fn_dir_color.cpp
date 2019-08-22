@@ -10,15 +10,15 @@
 
 using namespace std;
 
-fn_dir_color::fn_dir_color (VideoCapture& _video, 
+fn_dir_color::fn_dir_color (string _file_name, 
 							int _height)
-							: method(_video, _height) {
+							: method(_file_name, _height) {
 }
 
 void fn_dir_color::run (int buffer_size) {
 	cout << "Running color map" << endl;
 
-	VideoWriter* video_output = ini_video_output ("dir_color");
+	VideoWriter* video_output = ini_video_output (file_name + "_dir_color_" + to_string(buffer_size));
 
 	int current_buffer = 0;
 	vector<Mat> buffer;
@@ -74,7 +74,7 @@ void fn_dir_color::run (int buffer_size) {
 void fn_dir_color::run_dir (int buffer_size) {
 	cout << "Running direction only color map" << endl;
 
-	VideoWriter* video_output = ini_video_output ("dir_color");
+	VideoWriter* video_output = ini_video_output (file_name + "_dir_only_color_" + to_string(buffer_size));
 
 	int current_buffer = 0;
 	vector<Mat> buffer;

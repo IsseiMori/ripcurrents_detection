@@ -19,7 +19,7 @@ typedef cv::Point3_<float> Pixel3;
 class fn_histgram: public method {
 	private:
 	public:
-		fn_histgram (VideoCapture& _video,
+		fn_histgram (string file_name,
 					 int _height);
 		void run ();
 		void create_histogram(Mat current, int hist[HIST_BINS], 

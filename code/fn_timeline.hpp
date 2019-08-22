@@ -26,11 +26,9 @@ class timeline {
 class fn_timeline: public method {
 	private:
 		vector<timeline> timelines;
-		int v_num;
 	public:
-		fn_timeline (VideoCapture& _video,
-					 int _height,
-					 int v_num = 10);
-		void run();
+		fn_timeline (string file_name,
+					 int _height);
+		void run(int v_num = 10);
 		void add_timeline (Pixel2 start, Pixel2 end, int vertices_count);
 };

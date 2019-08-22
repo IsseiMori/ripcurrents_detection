@@ -7,9 +7,9 @@
 
 using namespace std;
 
-fn_histgram::fn_histgram (VideoCapture& _video, 
+fn_histgram::fn_histgram (string file_name, 
 							int _height)
-							: method(_video, _height) {
+							: method(file_name, _height) {
 
 }
 
@@ -17,7 +17,7 @@ fn_histgram::fn_histgram (VideoCapture& _video,
 void fn_histgram::run () {
 	cout << "Running histgram" << endl;
 
-	VideoWriter* video_output = ini_video_output ("histgram");
+	VideoWriter* video_output = ini_video_output (file_name + "_histgram");
 	
 
 	int hist[HIST_BINS] = {0}; //histogram
