@@ -93,7 +93,8 @@ int main(int argc, char **argv)
 		}
 		// ripcurrents video.mp4 5 buffer_size(optional)
 		// buffer_size : number of frames to average (default 1)
-		// Output file name : infile_dir_color_buffersize
+		// Output file name : infile_dir_color_buffersize_color
+		// Output file name : infile_dir_color_buffersize_overlay
 		case 5: {
 			fn_dir_color dir_color = fn_dir_color (file_name, 480);
 			if (argc < 4 ) {
@@ -106,7 +107,8 @@ int main(int argc, char **argv)
 		}
 		// ripcurrents video.mp4 6 buffer_size(optional)
 		// buffer_size : number of frames to average (default 1)
-		// Output file name : infile_dir_only__buffersize
+		// Output file name : infile_dir_only__buffersize_color
+		// Output file name : infile_dir_only__buffersize_overlay
 		case 6: {
 			fn_dir_color dir_color = fn_dir_color (file_name, 480);
 			if (argc < 4 ) {
