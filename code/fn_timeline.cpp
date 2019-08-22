@@ -7,8 +7,24 @@
 
 using namespace std;
 
+void mouse_callback(int event, int x, int y, int flags, void *userdata)
+{
+    if (event == EVENT_LBUTTONDOWN) {
+		cout << x << " " << y << endl;
+		pair<Pixel2*, Pixel2*> *p = static_cast<pair<Pixel2*, Pixel2*>*>(userdata);
+		if (p->first == nullptr) {
+			p->first = new Pixel2(x,y);
+		} 
+		else {
+			p->second = new Pixel2(x,y);
+		}
+
+    }
+}
+
 fn_timeline::fn_timeline (VideoCapture& _video, 
-					int _height): method(_video, _height) {
+					int _height,
+					int _v_num): method(_video, _height), v_num(_v_num){
 }
 
 void fn_timeline::run () {
@@ -16,36 +32,39 @@ void fn_timeline::run () {
 
 	VideoWriter* video_output = ini_video_output ("timelines");
 
-	Mat frame, resized_frame, grayscaled_frame;
-	UMat u_curr, u_prev;
+	ini_frame();
 
-	video.read (frame);
-	if (frame.empty()) exit(1);
-	resize (frame, resized_frame, Size(width, height), 0, 0, INTER_LINEAR);
-	cvtColor (resized_frame, grayscaled_frame, COLOR_BGR2GRAY);
-	grayscaled_frame.copyTo(u_prev);
+	imshow ("click start and end", resized_frame);
+
+	pair<Pixel2*, Pixel2*> st_ed;
+
+	setMouseCallback("click start and end", mouse_callback, &st_ed);
+
+	while (st_ed.first == nullptr || st_ed.second == nullptr) {
+		waitKey();
+	}
+
+
+	add_timeline (*st_ed.first, *st_ed.second, v_num);
+
 
 	for (int framecount = 1; true; ++framecount) {
 
 		cout << "Frame " << framecount << endl;
 
-		video.read (frame);
-		if (frame.empty()) break;
-		resize (frame, resized_frame, Size(width, height), 0, 0, INTER_LINEAR);
-		cvtColor (resized_frame, grayscaled_frame, COLOR_BGR2GRAY);
-		grayscaled_frame.copyTo(u_curr);
+		if (read_frame()) break;
 
 		Mat out_img;
 		resized_frame.copyTo (out_img);
 	
 		for (timeline& tl : timelines) {
-			tl.runLK(u_prev, u_curr, out_img);
+			tl.runLK(prev_frame, curr_frame, out_img);
 		}
 		
 		imshow ("timelines", out_img);
 		video_output->write (out_img);
 
-		u_curr.copyTo (u_prev);
+		curr_frame.copyTo (prev_frame);
 		if ( waitKey(1) == 27) break;
 
 	}
@@ -74,7 +93,7 @@ timeline::timeline (Pixel2 start, Pixel2 end, int vertices_count) {
 }
 
 
-void timeline::runLK(UMat u_prev, UMat u_curr, Mat& out_img) {
+void timeline::runLK(Mat u_prev, Mat u_curr, Mat& out_img) {
 
 	// return status values of calcOpticalFlowPyrLK
 	vector<uchar> status;

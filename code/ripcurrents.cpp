@@ -31,10 +31,12 @@ int main(int argc, char **argv)
 	}
 
 	switch (option) {
+		// ripcurrents video.mp4 0 v_num
+		// v_num : number of vertices
 		case 0: {
-			fn_timeline timeline = fn_timeline (video, 480);
-			timeline.add_timeline (Pixel2(timeline.width * 0.1, timeline.height * 0.6), 
-								Pixel2(timeline.width * 0.9, timeline.height * 0.6), 10);
+			int v_num = stoi (argv[3]);
+			cout << "Click two end points of the timeline, then press any key to start" << endl;
+			fn_timeline timeline = fn_timeline (video, 480, v_num);
 			timeline.run();
 			break;
 		}

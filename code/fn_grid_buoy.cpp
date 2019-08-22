@@ -34,36 +34,25 @@ void fn_grid_buoy::runLK () {
 
 	VideoWriter* video_output = ini_video_output ("grid_buoy_LK");
 
-	Mat frame, resized_frame, grayscaled_frame;
-	UMat u_curr, u_prev;
-
-	video.read (frame);
-	if (frame.empty()) exit(1);
-	resize (frame, resized_frame, Size(width, height), 0, 0, INTER_LINEAR);
-	cvtColor (resized_frame, grayscaled_frame, COLOR_BGR2GRAY);
-	grayscaled_frame.copyTo(u_prev);
+	ini_frame ();
 
 	for (int framecount = 1; true; ++framecount) {
 
 		cout << "Frame " << framecount << endl;
 
-		video.read (frame);
-		if (frame.empty()) break;
-		resize (frame, resized_frame, Size(width, height), 0, 0, INTER_LINEAR);
-		cvtColor (resized_frame, grayscaled_frame, COLOR_BGR2GRAY);
-		grayscaled_frame.copyTo(u_curr);
+		if (read_frame()) break;
 
 		Mat out_img;
 		resized_frame.copyTo (out_img);
 	
 		
-		vertices_runLK (u_prev, u_curr, out_img);
+		vertices_runLK (prev_frame, curr_frame, out_img);
 		
 		
 		imshow ("grid_buoy", out_img);
 		video_output->write (out_img);
 
-		u_curr.copyTo (u_prev);
+		curr_frame.copyTo (prev_frame);
 		if ( waitKey(1) == 27) break;
 
 	}
@@ -114,7 +103,7 @@ void fn_grid_buoy::runFB () {
 }
 
 
-void fn_grid_buoy::vertices_runLK (UMat u_prev, UMat u_curr, Mat& out_img) {
+void fn_grid_buoy::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img) {
 
 	// return status values of calcOpticalFlowPyrLK
 	vector<uchar> status;

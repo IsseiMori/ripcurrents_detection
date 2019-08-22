@@ -15,4 +15,5 @@ class fn_dir_color: public method {
 		fn_dir_color (VideoCapture& _video,
 					 int _height);
 		void run (int buffer_size = 10);
+		void run_dir (int buffer_size = 10);
 };

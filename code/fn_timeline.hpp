@@ -18,7 +18,7 @@ class timeline {
 		timeline(Pixel2 start, Pixel2 end, int vertices_count);
 
 		// run LK method on each vertex and draw lines
-		void runLK(UMat u_prev, UMat u_curr, Mat& out_img);
+		void runLK(Mat u_prev, Mat u_curr, Mat& out_img);
 
 		// void runFarneBack();
 };
@@ -26,9 +26,11 @@ class timeline {
 class fn_timeline: public method {
 	private:
 		vector<timeline> timelines;
+		int v_num;
 	public:
 		fn_timeline (VideoCapture& _video,
-					 int _height);
+					 int _height,
+					 int v_num = 10);
 		void run();
 		void add_timeline (Pixel2 start, Pixel2 end, int vertices_count);
 };

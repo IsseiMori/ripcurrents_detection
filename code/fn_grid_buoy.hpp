@@ -23,6 +23,6 @@ class fn_grid_buoy: public method {
 					 int h_count);
 		void runLK ();
 		void runFB ();
-		void vertices_runLK (UMat u_prev, UMat u_curr, Mat& out_img);
+		void vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img);
 		void vertices_runFB (Mat& flow, Mat& out_img);
 };
