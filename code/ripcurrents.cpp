@@ -28,15 +28,18 @@ int main(int argc, char **argv)
 	switch (option) {
 		// ripcurrents video.mp4 0 v_num(optional)
 		// v_num : number of vertices (default 10)
+		// born_period : duration of generating new timeline (default 0 = no generation)
+		// lifespan : duration of a timeline to die (default 0 = never die)
 		// Output file name: infile_timelines_stx_sty_edx_edy_vnum
 		case 0: {
 			cout << "Click two end points of the timeline, then press any key to start" << endl;
-			fn_timeline timeline = fn_timeline (file_name, 480);
-			if (argc < 4 ) {
+			if (argc < 6 ) {
+				fn_timeline timeline = fn_timeline (file_name, 480, 20, 0, 0);
 				timeline.run();
 			}
 			else {
-				timeline.run(stoi (argv[3]));
+				fn_timeline timeline = fn_timeline (file_name, 480, stoi (argv[3]), stoi (argv[4]), stoi (argv[5]));
+				timeline.run();
 			}
 			break;
 		}
@@ -62,11 +65,13 @@ int main(int argc, char **argv)
 			cout << "Usage: ripcurrents video.mp4 2 v_count(optional) h_count(optional)" << endl;
 			if (argc < 4) {
 				fn_grid_buoy g_buoy = fn_grid_buoy (file_name, 480);
-				g_buoy.runFB();
+				// g_buoy.runFB();
+				g_buoy.runLK(true);
 			}
 			else if (argc >= 5){
 				fn_grid_buoy g_buoy = fn_grid_buoy (file_name, 480, stoi (argv[3]), stoi (argv[4]));
-				g_buoy.runFB();
+				g_buoy.runLK(true);
+				// g_buoy.runFB();
 			}
 			break;
 		}
@@ -96,6 +101,7 @@ int main(int argc, char **argv)
 		// Output file name : infile_dir_color_buffersize_color
 		// Output file name : infile_dir_color_buffersize_overlay
 		case 5: {
+			cout << file_name << endl;
 			fn_dir_color dir_color = fn_dir_color (file_name, 480);
 			if (argc < 4 ) {
 				dir_color.run ();
@@ -118,6 +124,10 @@ int main(int argc, char **argv)
 				dir_color.run_dir (stoi (argv[3]));
 			}
 			break;
+		}
+		// any test
+		case 7: {
+
 		}
 		default: {
 			break;

@@ -7,12 +7,29 @@
 
 using namespace std;
 
+string getFileName(const string& s) {
+
+   char sep = '/';
+
+#ifdef _WIN32
+   sep = '\\';
+#endif
+
+   size_t i = s.rfind(sep, s.length());
+   if (i != string::npos) {
+      return(s.substr(i+1, s.length() - i));
+   }
+
+   return(s);
+}
+
+
 method::method (string _file_name, 
 				int _height) {
 
-	file_name = _file_name;
-
-	video = cv::VideoCapture(file_name);
+	file_name = getFileName(_file_name);
+	
+	video = cv::VideoCapture(_file_name);
 	if (!video.isOpened())
 	{
 		cout << file_name << " File not found" << endl;

@@ -11,45 +11,54 @@ void mouse_callback(int event, int x, int y, int, void *userdata)
 {
     if (event == EVENT_LBUTTONDOWN) {
 		cout << x << " " << y << endl;
-		pair<Pixel2*, Pixel2*> *p = static_cast<pair<Pixel2*, Pixel2*>*>(userdata);
-		if (p->first == nullptr) {
-			p->first = new Pixel2(x,y);
+		pair<vector<pair<Pixel2, Pixel2>>, Pixel2*> *p = static_cast<pair<vector<pair<Pixel2, Pixel2>>, Pixel2*>*>(userdata);
+		if (p->second == nullptr) {
+			p->second = new Pixel2(x,y);
 		} 
 		else {
-			p->second = new Pixel2(x,y);
+			p->first.push_back(make_pair(*(p->second), Pixel2(x,y)));
+			p->second = nullptr;
 		}
 
     }
 }
 
 fn_timeline::fn_timeline (string file_name, 
-					int _height): method(file_name, _height) {
+					int _height,
+					int _vnum,
+					int _born_period,
+					int _lifespan): method(file_name, _height) {
+	vnum = _vnum;
+	born_period = _born_period;
+	lifespan = _lifespan;
 }
 
-void fn_timeline::run (int v_num) {
+void fn_timeline::run () {
 	cout << "Running timeline" << endl;
 
 	ini_frame();
 
 	imshow ("click start and end", resized_frame);
 
-	pair<Pixel2*, Pixel2*> st_ed;
+	pair<vector<pair<Pixel2, Pixel2>>, Pixel2*> vec_and_pixel;
 
-	setMouseCallback("click start and end", mouse_callback, &st_ed);
+	setMouseCallback("click start and end", mouse_callback, &vec_and_pixel);
 
-	while (st_ed.first == nullptr || st_ed.second == nullptr) {
+	while (vec_and_pixel.first.size() == 0) {
 		waitKey();
 	}
 
-
-	add_timeline (*st_ed.first, *st_ed.second, v_num);
+	for (auto pixels : vec_and_pixel.first) {
+		start_end.push_back (make_pair(pixels.first, pixels.second));
+		add_timeline (pixels.first, pixels.second, vnum, lifespan);
+	}
 
 	VideoWriter* video_output = ini_video_output (file_name +  "_timelines_" 
-		+ to_string(static_cast<int>(st_ed.first->x)) + "_" 
-		+ to_string(static_cast<int>(st_ed.first->y)) + "_"
-		+ to_string(static_cast<int>(st_ed.second->x)) + "_" 
-		+ to_string(static_cast<int>(st_ed.second->y)) + "_"
-		+ to_string(v_num));
+		+ to_string(static_cast<int>(start_end[0].first.x)) + "_" 
+		+ to_string(static_cast<int>(start_end[0].first.y)) + "_"
+		+ to_string(static_cast<int>(start_end[0].second.x)) + "_" 
+		+ to_string(static_cast<int>(start_end[0].second.y)) + "_"
+		+ to_string(vnum));
 
 	for (int framecount = 1; true; ++framecount) {
 
@@ -59,10 +68,24 @@ void fn_timeline::run (int v_num) {
 
 		Mat out_img;
 		resized_frame.copyTo (out_img);
-	
-		for (timeline& tl : timelines) {
-			tl.runLK(prev_frame, curr_frame, out_img);
+
+		if (born_period != 0 && framecount%born_period == 0) {
+			for (auto pixels : start_end) {
+				add_timeline (pixels.first, pixels.second, vnum, framecount + lifespan);
+			}
 		}
+
+		for (auto begin = timelines.begin(); begin != timelines.end();) {
+			if (begin->die_at != 0 && begin->die_at < framecount){
+				timelines.erase(begin);
+			}
+			else {
+				begin->runLK (prev_frame, curr_frame, out_img);
+				++begin;
+			}
+		}
+
+		drawFrameCount(out_img, framecount);
 		
 		imshow ("timelines", out_img);
 		video_output->write (out_img);
@@ -78,11 +101,13 @@ void fn_timeline::run (int v_num) {
 
 }
 
-void fn_timeline::add_timeline (Pixel2 start, Pixel2 end, int vertices_count) {
-	timelines.push_back(timeline(start, end, vertices_count));
+void fn_timeline::add_timeline (Pixel2 start, Pixel2 end, int vertices_count, int die_at) {
+	timelines.push_back(timeline(start, end, vertices_count, die_at));
 }
 
-timeline::timeline (Pixel2 start, Pixel2 end, int vertices_count) {
+timeline::timeline (Pixel2 start, Pixel2 end, int vertices_count, int _die_at) {
+
+	die_at = _die_at;
 	
 	// define the distance between each vertices
 	float diffX = (end.x - start.x) / vertices_count;

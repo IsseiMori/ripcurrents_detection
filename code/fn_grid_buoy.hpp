@@ -23,8 +23,8 @@ class fn_grid_buoy: public method {
 					 int _height,
 					 int _v_count = 10,
 					 int _h_count = 10);
-		void runLK ();
+		void runLK (bool isNorm = false);
 		void runFB ();
-		void vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img);
+		void vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool isNorm);
 		void vertices_runFB (Mat& flow, Mat& out_img);
 };
