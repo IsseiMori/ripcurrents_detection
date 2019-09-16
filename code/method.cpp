@@ -37,10 +37,12 @@ method::method (string _file_name,
 	}
 
 	fps = video.get(CAP_PROP_FPS);
+	total_frame = video.get(CAP_PROP_FRAME_COUNT);
 
 	height = _height;
 	width = floor(video.get(cv::CAP_PROP_FRAME_WIDTH) * 
 			height / video.get(cv::CAP_PROP_FRAME_HEIGHT));
+			
 
 }
 
@@ -58,6 +60,74 @@ VideoWriter* method::ini_video_output (string video_name) {
 
 	return video_output;
 
+}
+
+void method::ini_buffer (int buffer_size) {
+	current_buffer = 0;
+	average_flow = Mat::zeros(height,width,CV_32FC2);
+
+	for ( int i = 0; i < buffer_size; i++ )
+	{
+		buffer.push_back(Mat::zeros(height,width,CV_32FC2));
+	}
+}
+
+void method::update_buffer (int buffer_size) {
+	average_flow -= buffer[current_buffer] / static_cast<float>(buffer_size);
+	buffer[current_buffer] = flow.clone();
+	average_flow += buffer[current_buffer] / static_cast<float>(buffer_size);
+
+	current_buffer++;
+	if ( current_buffer >= buffer_size ) current_buffer = 0;
+}
+
+void method::calc_FB () {
+	// recommended 5 5 1.1
+	// recommended 5 7 1.5
+	// no banding 20 (3) 15 1.2
+	// calcOpticalFlowFarneback(prev_frame, curr_frame, flow, 0.5, 2, 20, 3, 15, 1.2, OPTFLOW_FARNEBACK_GAUSSIAN);
+	calcOpticalFlowFarneback(prev_frame, curr_frame, flow, 0.5, 2, 5, 3, 5, 1.1, OPTFLOW_FARNEBACK_GAUSSIAN);
+}
+
+void method::eliminate_std(int sig) {
+
+	float mean = 0;
+	float std = 0;
+	int n = 0;
+	float diff_sum = 0;
+
+	flow.forEach<Pixel2>([&](Pixel2& px, const int pos[]) -> void {
+		mean += sqrt(px.x * px.x + px.y*px.y);
+		n++;
+	});
+
+	mean = mean / n;
+
+	flow.forEach<Pixel2>([&](Pixel2& px, const int pos[]) -> void {
+		diff_sum += pow(mean - sqrt(px.x * px.x + px.y*px.y),2);
+	});
+
+	std = sqrt(diff_sum / (n-1));
+
+	flow.forEach<Pixel2>([&](Pixel2& px, const int pos[]) -> void {
+
+		if ( sqrt(px.x * px.x + px.y*px.y) - mean > std * sig) {
+			px.x = 0;
+			px.y = 0;
+		}
+
+	});
+}
+
+void method::normalize_flow() {
+	flow.forEach<Pixel2>([&](Pixel2& px, const int pos[]) -> void {
+
+		float theta = atan2 (px.y, px.x);
+		
+		px.x = cos(theta);
+		px.y = sin(theta);
+
+	});
 }
 
 void method::vector_to_color(Mat& curr, Mat& out_img) {
@@ -163,4 +233,14 @@ int method::read_frame () {
 void method::drawFrameCount (Mat& outImg, int framecount) {
 	putText(outImg, to_string(framecount), Point(30,30), 
 	FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(250,250,250), 1, false);
+}
+
+void method::ini_draw_colorwheel () {
+	colorwheel = imread("colorWheel.jpg");
+    resize(colorwheel, colorwheel, Size(height/8, height/8));
+}
+
+void method::draw_colorwheel(Mat& out_img) {
+	Mat mat = (Mat_<double>(2,3)<<1.0, 0.0, width - height/8, 0.0, 1.0, 0);
+    warpAffine(colorwheel, out_img, mat, out_img.size(), INTER_LINEAR, cv::BORDER_TRANSPARENT);
 }

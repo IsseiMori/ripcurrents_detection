@@ -48,7 +48,6 @@ void fn_grid_buoy::runLK (bool isNorm) {
 
 		Mat out_img;
 		resized_frame.copyTo (out_img);
-	
 		
 		vertices_runLK (prev_frame, curr_frame, out_img, isNorm);
 
@@ -143,11 +142,25 @@ void fn_grid_buoy::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool is
 			vertices_next[i] = vertices[i];
 		}
 
+		/*
 		if (isNorm) {
 			float dt = 0.05;
 			vertices_next[i].x = (vertices_next[i].x - vertices[i].x) > 0 ? vertices[i].x + dt: vertices[i].x - dt;
 			vertices_next[i].y = (vertices_next[i].y - vertices[i].y) > 0 ? vertices[i].y + dt: vertices[i].y - dt;
 		}
+		*/
+
+		if (isNorm) {
+			float x = vertices_next[i].x - vertices[i].x;
+			float y = vertices_next[i].y - vertices[i].y;
+			
+			float theta = atan2 (y, x);
+
+			float dt = 0.1;
+		
+			vertices_next[i].x = vertices[i].x + cos(theta) * dt;
+			vertices_next[i].y = vertices[i].y + sin(theta) * dt;
+		} 
 
 		
 	}

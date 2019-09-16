@@ -11,6 +11,8 @@
 #include "fn_histgram.hpp"
 #include "fn_timex.hpp"
 #include "fn_dir_color.hpp"
+#include "fn_shear.hpp"
+#include "fn_pathline.hpp"
 
 using namespace std;
 
@@ -54,7 +56,7 @@ int main(int argc, char **argv)
 			}
 			else if (argc >= 5){
 				fn_grid_buoy g_buoy = fn_grid_buoy (file_name, 480, stoi (argv[3]), stoi (argv[4]));
-				g_buoy.runLK();
+				g_buoy.runLK(true);
 			}
 			break;
 		}
@@ -125,8 +127,49 @@ int main(int argc, char **argv)
 			}
 			break;
 		}
-		// any test
+		// ripcurrents video.mp4 7 buffer_size(optional)
+		// buffer_size : number of frames to average (default 1)
+		// Output file name : infile_norm_color_buffersize_color
+		// Output file name : infile_norm_color_buffersize_overlay
 		case 7: {
+			fn_dir_color dir_color = fn_dir_color (file_name, 480);
+			if (argc < 4 ) {
+				dir_color.run_norm ();
+			}
+			else {
+				dir_color.run_norm (stoi (argv[3]));
+			}
+			break;
+		}
+		// ripcurrents video.mp4 8 buffer_size(optional)
+		// buffer_size : number of frames to average (default 1)
+		// Output file name : infile_shear_buffersize_color
+		// Output file name : infile_shear_buffersize_overlay
+		case 8: {
+			fn_shear shear = fn_shear (file_name, 480);
+			if (argc < 4 ) {
+				shear.run ();
+			}
+			else {
+				shear.run (stoi (argv[3]));
+			}
+			break;
+		}
+		// ripcurrents video.mp4 9
+		// Output file name : infile_pathline
+		// Output file name : infile_pathline
+		case 9: {
+			fn_pathline pathline = fn_pathline (file_name, 480);
+			if (argc < 4 ) {
+				pathline.runLK (10);
+			}
+			else {
+				pathline.runLK (stoi (argv[3]));
+			}
+			break;
+		}
+		// any test
+		case 10: {
 
 		}
 		default: {

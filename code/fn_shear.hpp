@@ -9,12 +9,13 @@
 using namespace std;
 
 
-class fn_dir_color: public method {
+class fn_shear: public method {
 	private:
+		float max_displacement;
+		float max_frobeniusNorm;
 	public:
-		fn_dir_color (string _file_name,
+		fn_shear (string _file_name,
 					 int _height);
 		void run (int buffer_size = 1);
-		void run_dir (int buffer_size = 1);
-		void run_norm (int buffer_size = 1);
+		void shearRateToColor(Mat& current, Mat& out_img);
 };
