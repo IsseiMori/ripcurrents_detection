@@ -97,25 +97,20 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img) {
 	cvtColor(out_img, out_img, COLOR_HSV2BGR);
 }
 
-void fn_shear::run (int buffer_size) {
+void fn_shear::run (int buffer_size, bool isNorm) {
 	cout << "Running shear color map" << endl;
 
-	VideoWriter* video_output_color = ini_video_output (file_name + "_shear_" + to_string(buffer_size) + "_color");
-	VideoWriter* video_output_overlay = ini_video_output (file_name + "_shear_" + to_string(buffer_size) + "_overlay");
+	string n_str = isNorm? "norm_" : "";
 
-	int current_buffer = 0;
-	vector<Mat> buffer;
-	Mat average_flow = Mat::zeros(height,width,CV_32FC2);
-
-	for ( int i = 0; i < buffer_size; i++ )
-	{
-		buffer.push_back(Mat::zeros(height,width,CV_32FC2));
-	}
-
-	Mat color_wheel = imread("colorWheel.jpg");
-    resize(color_wheel, color_wheel, Size(height/8, height/8));
+	VideoWriter* video_output_color = ini_video_output (file_name + "_shear_" + n_str + to_string(buffer_size) + "_color");
+	VideoWriter* video_output_overlay = ini_video_output (file_name + "_shear_" + n_str + to_string(buffer_size) + "_overlay");
 
 	ini_frame();
+	ini_buffer(buffer_size);
+
+	Mat color_wheel = imread("colorChart.jpg");
+    resize(color_wheel, color_wheel, Size(height/8, height/8));
+
 
 	for (int framecount = 1; true; ++framecount) {
 
@@ -123,61 +118,20 @@ void fn_shear::run (int buffer_size) {
 
 		if (read_frame()) break;
 
-
-		// recommended 5 5 1.1
-		// recommended 5 7 1.5
-		// no banding 20 (3) 15 1.2
-		calcOpticalFlowFarneback(prev_frame, curr_frame, flow, 0.5, 2, 20, 3, 15, 1.2, OPTFLOW_FARNEBACK_GAUSSIAN);
-		// calcOpticalFlowFarneback(prev_frame, curr_frame, flow, 0.5, 2, 5, 3, 5, 1.1, OPTFLOW_FARNEBACK_GAUSSIAN);
+		calc_FB ();
 
 		Mat out_img;
 		Mat out_img_overlay;
 		resized_frame.copyTo(out_img);
 		resized_frame.copyTo(out_img_overlay);
 
+		eliminate_std(5);
 
-		float mean = 0;
-		float std = 0;
-		int n = 0;
-		float diff_sum = 0;
+		if (isNorm) {
+			normalize_flow();
+		}
 
-		flow.forEach<Pixel2>([&](Pixel2& px, const int pos[]) -> void {
-			mean += sqrt(px.x * px.x + px.y*px.y);
-			n++;
-		});
-
-		mean = mean / n;
-
-		flow.forEach<Pixel2>([&](Pixel2& px, const int pos[]) -> void {
-			diff_sum += pow(mean - sqrt(px.x * px.x + px.y*px.y),2);
-		});
-
-		std = sqrt(diff_sum / (n-1));
-
-		flow.forEach<Pixel2>([&](Pixel2& px, const int pos[]) -> void {
-
-			float theta = atan2 (px.y, px.x);
-
-			if ( sqrt(px.x * px.x + px.y*px.y) - mean > std * 5) {
-			// if ( abs(sqrt(px.x * px.x + px.y*px.y) - mean) > std * 3) {	
-				px.x = 0;
-				px.y = 0;
-			}
-			
-
-			px.x = cos(theta);
-			px.y = sin(theta);
-
-		});
-
-
-
-		average_flow -= buffer[current_buffer] / static_cast<float>(buffer_size);
-		buffer[current_buffer] = flow.clone();
-		average_flow += buffer[current_buffer] / static_cast<float>(buffer_size);
-
-		current_buffer++;
-		if ( current_buffer >= buffer_size ) current_buffer = 0;
+		update_buffer (buffer_size);
 
 		shearRateToColor (average_flow, out_img);
 		//vector_to_color (average_flow, out_img_overlay);
@@ -185,7 +139,7 @@ void fn_shear::run (int buffer_size) {
 		drawFrameCount(out_img, framecount);
 
 
-		addWeighted( out_img, 0.6, out_img_overlay, 0.4, 0.0, out_img_overlay);
+		addWeighted( out_img, 0.4, out_img_overlay, 0.6, 0.0, out_img_overlay);
 
 		// Draw color wheel
         Mat mat = (Mat_<double>(2,3)<<1.0, 0.0, width - height/8, 0.0, 1.0, 0);

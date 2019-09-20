@@ -21,8 +21,8 @@ class fn_grid_buoy: public method {
 	public:
 		fn_grid_buoy (string _file_name,
 					 int _height,
-					 int _v_count = 10,
-					 int _h_count = 10);
+					 int _v_count,
+					 int _h_count);
 		void runLK (bool isNorm = false);
 		void runFB ();
 		void vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool isNorm);

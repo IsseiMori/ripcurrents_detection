@@ -34,7 +34,7 @@ fn_grid_buoy::fn_grid_buoy (string _file_name,
 void fn_grid_buoy::runLK (bool isNorm) {
 	cout << "Running grid buoy (LK)" << endl;
 
-	string n_str = isNorm? "normalized_" : "";
+	string n_str = isNorm? "norm_" : "";
 	VideoWriter* video_output = ini_video_output (file_name +  "_grid_buoy_LK_"
 		+ n_str + to_string(v_count) + "_" + to_string(h_count));
 
@@ -135,32 +135,24 @@ void fn_grid_buoy::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool is
 			
 			vertices_next[i] = vertices[i];
 		}
-		
-		if ( abs(vertices_next[i].x - vertices_root[i].x) > max_len
-			|| abs(vertices_next[i].y - vertices_root[i].y) > max_len ) {
-			
-			vertices_next[i] = vertices[i];
-		}
-
-		/*
-		if (isNorm) {
-			float dt = 0.05;
-			vertices_next[i].x = (vertices_next[i].x - vertices[i].x) > 0 ? vertices[i].x + dt: vertices[i].x - dt;
-			vertices_next[i].y = (vertices_next[i].y - vertices[i].y) > 0 ? vertices[i].y + dt: vertices[i].y - dt;
-		}
-		*/
-
+	
 		if (isNorm) {
 			float x = vertices_next[i].x - vertices[i].x;
 			float y = vertices_next[i].y - vertices[i].y;
 			
 			float theta = atan2 (y, x);
 
-			float dt = 0.1;
+			float dt = max(0.1, 50.0/total_frame);
 		
 			vertices_next[i].x = vertices[i].x + cos(theta) * dt;
 			vertices_next[i].y = vertices[i].y + sin(theta) * dt;
 		} 
+
+		if ( abs(vertices_next[i].x - vertices_root[i].x) > max_len
+			|| abs(vertices_next[i].y - vertices_root[i].y) > max_len ) {
+			
+			vertices_next[i] = vertices[i];
+		}
 
 		
 	}

@@ -18,7 +18,7 @@ class timeline {
 		timeline(Pixel2 start, Pixel2 end, int vertices_count, int _die_at);
 
 		// run LK method on each vertex and draw lines
-		void runLK(Mat u_prev, Mat u_curr, Mat& out_img);
+		void runLK(Mat u_prev, Mat u_curr, Mat& out_img, bool isNorm);
 		int die_at;
 
 		// void runFarneBack();
@@ -37,7 +37,7 @@ class fn_timeline: public method {
 					 int _vnum = 10,
 					 int _born_period = 0,
 					 int _lifespan = 0);
-		void run();
+		void run(bool isNorm);
 		void add_timeline (Pixel2 start, Pixel2 end, int vertices_count, int die_at);
 		int get_vnum () {return vnum;}
 		vector<pair<Pixel2,Pixel2>> start_end;

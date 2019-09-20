@@ -33,7 +33,7 @@ fn_timeline::fn_timeline (string file_name,
 	lifespan = _lifespan;
 }
 
-void fn_timeline::run () {
+void fn_timeline::run (bool isNorm) {
 	cout << "Running timeline" << endl;
 
 	ini_frame();
@@ -53,7 +53,9 @@ void fn_timeline::run () {
 		add_timeline (pixels.first, pixels.second, vnum, lifespan);
 	}
 
-	VideoWriter* video_output = ini_video_output (file_name +  "_timelines_" 
+	string n_str = isNorm? "norm_" : "";
+
+	VideoWriter* video_output = ini_video_output (file_name +  "_timelines_" + n_str
 		+ to_string(static_cast<int>(start_end[0].first.x)) + "_" 
 		+ to_string(static_cast<int>(start_end[0].first.y)) + "_"
 		+ to_string(static_cast<int>(start_end[0].second.x)) + "_" 
@@ -80,7 +82,7 @@ void fn_timeline::run () {
 				timelines.erase(begin);
 			}
 			else {
-				begin->runLK (prev_frame, curr_frame, out_img);
+				begin->runLK (prev_frame, curr_frame, out_img, isNorm);
 				++begin;
 			}
 		}
@@ -121,7 +123,7 @@ timeline::timeline (Pixel2 start, Pixel2 end, int vertices_count, int _die_at) {
 }
 
 
-void timeline::runLK(Mat u_prev, Mat u_curr, Mat& out_img) {
+void timeline::runLK(Mat u_prev, Mat u_curr, Mat& out_img, bool isNorm) {
 
 	// return status values of calcOpticalFlowPyrLK
 	vector<uchar> status;
@@ -145,6 +147,18 @@ void timeline::runLK(Mat u_prev, Mat u_curr, Mat& out_img) {
 			|| abs(vertices[i].y - vertices_next[i].y) > 20 ) {
 				vertices_next[i] = vertices[i];
 			}
+		
+		if (isNorm) {
+			float x = vertices_next[i].x - vertices[i].x;
+			float y = vertices_next[i].y - vertices[i].y;
+			
+			float theta = atan2 (y, x);
+
+			float dt = 0.3;
+		
+			vertices_next[i].x = vertices[i].x + cos(theta) * dt;
+			vertices_next[i].y = vertices[i].y + sin(theta) * dt;
+		} 
 	}
 	
 	// copy the result for the next frame

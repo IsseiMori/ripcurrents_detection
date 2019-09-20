@@ -37,11 +37,15 @@ int main(int argc, char **argv)
 			cout << "Click two end points of the timeline, then press any key to start" << endl;
 			if (argc < 6 ) {
 				fn_timeline timeline = fn_timeline (file_name, 480, 20, 0, 0);
-				timeline.run();
+				timeline.run(false);
 			}
-			else {
+			else if (argc == 6) {
 				fn_timeline timeline = fn_timeline (file_name, 480, stoi (argv[3]), stoi (argv[4]), stoi (argv[5]));
-				timeline.run();
+				timeline.run(false);
+			}
+			else if (argc > 6) {
+				fn_timeline timeline = fn_timeline (file_name, 480, stoi (argv[3]), stoi (argv[4]), stoi (argv[5]));
+				timeline.run(true);
 			}
 			break;
 		}
@@ -51,10 +55,14 @@ int main(int argc, char **argv)
 		case 1: {
 			cout << "Usage: ripcurrents video.mp4 1 v_count(optional) h_count(optional)" << endl;
 			if (argc < 4) {
-				fn_grid_buoy g_buoy = fn_grid_buoy (file_name, 480);
+				fn_grid_buoy g_buoy = fn_grid_buoy (file_name, 480, 20, 20);
 				g_buoy.runLK();
 			}
-			else if (argc >= 5){
+			else if (argc == 5){
+				fn_grid_buoy g_buoy = fn_grid_buoy (file_name, 480, stoi (argv[3]), stoi (argv[4]));
+				g_buoy.runLK(false);
+			}
+			else if (argc > 5){
 				fn_grid_buoy g_buoy = fn_grid_buoy (file_name, 480, stoi (argv[3]), stoi (argv[4]));
 				g_buoy.runLK(true);
 			}
@@ -66,14 +74,14 @@ int main(int argc, char **argv)
 		case 2: {
 			cout << "Usage: ripcurrents video.mp4 2 v_count(optional) h_count(optional)" << endl;
 			if (argc < 4) {
-				fn_grid_buoy g_buoy = fn_grid_buoy (file_name, 480);
-				// g_buoy.runFB();
-				g_buoy.runLK(true);
+				fn_grid_buoy g_buoy = fn_grid_buoy (file_name, 480, 20, 20);
+				g_buoy.runFB();
+				// g_buoy.runLK(true);
 			}
 			else if (argc >= 5){
 				fn_grid_buoy g_buoy = fn_grid_buoy (file_name, 480, stoi (argv[3]), stoi (argv[4]));
-				g_buoy.runLK(true);
-				// g_buoy.runFB();
+				// g_buoy.runLK(true);
+				g_buoy.runFB();
 			}
 			break;
 		}
@@ -148,10 +156,13 @@ int main(int argc, char **argv)
 		case 8: {
 			fn_shear shear = fn_shear (file_name, 480);
 			if (argc < 4 ) {
-				shear.run ();
+				shear.run (1, false);
 			}
-			else {
-				shear.run (stoi (argv[3]));
+			else if (argc == 4) {
+				shear.run (stoi (argv[3]), false);
+			}
+			else if (argc > 4) {
+				shear.run (stoi (argv[3]), true);
 			}
 			break;
 		}
