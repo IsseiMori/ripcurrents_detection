@@ -174,8 +174,11 @@ int main(int argc, char **argv)
 			if (argc < 4 ) {
 				pathline.runLK (10);
 			}
-			else {
+			else if(argc == 4) {
 				pathline.runLK (stoi (argv[3]));
+			}
+			else {
+				pathline.runLK (stoi (argv[3]), true);
 			}
 			break;
 		}

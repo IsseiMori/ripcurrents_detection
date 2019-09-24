@@ -15,6 +15,6 @@ class fn_pathline: public method {
 		fn_pathline (string _file_name,
 					 int _height);
 		void run ();
-		void runLK (float v);
+		void runLK (float v, bool isLine = false);
 		void calc_pathline (Mat& out_img, Mat& overlay, Mat& overlay_color, vector<Pixel2>& streampt, int framecount);
 };

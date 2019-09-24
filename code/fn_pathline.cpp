@@ -28,6 +28,20 @@ void fn_pathline::run () {
 		streampt.push_back (Pixel2(rand()%width,rand()%height));
 	}
 
+	Pixel2 lineStart(10,10);
+	Pixel2 lineEnd(100,100);
+	float numberOfVertices = 10.0;
+
+	// define the distance between each vertices
+	float diffX = (lineEnd.x - lineStart.x) / numberOfVertices;
+	float diffY = (lineEnd.y - lineStart.y) / numberOfVertices;
+
+	// create and push Pixel2 points
+	for (int i = 0; i <= numberOfVertices; i++)
+	{
+		streampt.push_back(Pixel2(lineStart.x + diffX * i, lineStart.y + diffY * i));
+	}
+
 	Mat overlay = Mat::zeros(Size(width, height), CV_8UC1);
 	Mat overlay_color = Mat::zeros(Size(width, height), CV_8UC3);
 
@@ -101,24 +115,73 @@ void fn_pathline::calc_pathline (Mat& out_img, Mat& overlay, Mat& overlay_color,
 	Mat tmp = Mat::zeros(Size(width, height), CV_8UC3);
 	applyColorMap(overlay, overlay_color, COLORMAP_RAINBOW);
 	add(overlay_color, tmp, tmp, overlay, -1);
-	addWeighted( out_img, 0.5, tmp, 0.5, 0.0, out_img);
+	addWeighted( out_img, 1.0, tmp, 0.5, 0.0, out_img);
 
 }
 
 
-void fn_pathline::runLK (float v) {
+void mouse_callback_pathline(int event, int x, int y, int, void *userdata)
+{
+    if (event == EVENT_LBUTTONDOWN) {
+		cout << x << " " << y << endl;
+		pair<vector<pair<Pixel2, Pixel2>>, Pixel2*> *p = static_cast<pair<vector<pair<Pixel2, Pixel2>>, Pixel2*>*>(userdata);
+		if (p->second == nullptr) {
+			p->second = new Pixel2(x,y);
+		} 
+		else {
+			p->first.push_back(make_pair(*(p->second), Pixel2(x,y)));
+			p->second = nullptr;
+		}
+
+    }
+}
+
+void fn_pathline::runLK (float v, bool isLine) {
 	cout << "Running color map" << endl;
 
-	VideoWriter* video_output = ini_video_output (file_name + "_pathline");
+	string str = isLine? "_line" : "";
+
+	VideoWriter* video_output = ini_video_output (file_name + "_pathline_" + to_string(static_cast<int>(v)) + str);
 
 	ini_frame();
 
+	Pixel2 lineStart;
+	Pixel2 lineEnd;
+	float numberOfVertices = v;
 	vector<Pixel2> vertices;
-	for(int i = 1; i < v; i++){
-		for(int j = 1; j < v; j++){
-			vertices.push_back (Pixel2(width/v*i,height/v*j));
+
+	imshow ("click start and end", resized_frame);
+
+	if (isLine) {
+		pair<vector<pair<Pixel2, Pixel2>>, Pixel2*> st_ed;
+
+		setMouseCallback("click start and end", mouse_callback_pathline, &st_ed);
+
+		while (st_ed.first.size() == 0) {
+			waitKey();
+		}
+
+		lineStart = st_ed.first[0].first;
+		lineEnd = st_ed.first[0].second;
+
+		// define the distance between each vertices
+		float diffX = (lineEnd.x - lineStart.x) / numberOfVertices;
+		float diffY = (lineEnd.y - lineStart.y) / numberOfVertices;
+
+		// create and push Pixel2 points
+		for (int i = 0; i <= numberOfVertices; i++)
+		{
+			vertices.push_back(Pixel2(lineStart.x + diffX * i, lineStart.y + diffY * i));
 		}
 	}
+	else {
+		for(int i = 1; i < v; i++){
+			for(int j = 1; j < v; j++){
+				vertices.push_back (Pixel2(width/v*i,height/v*j));
+			}
+		}
+	}
+	
 
 	Mat overlay = Mat::zeros(Size(width, height), CV_8UC1);
 	Mat overlay_color = Mat::zeros(Size(width, height), CV_8UC3);
@@ -156,13 +219,13 @@ void fn_pathline::runLK (float v) {
 
 		// draw edges
 		for ( int i = 0; i < (int)vertices.size(); i++ ) {
-			line(overlay,Point(vertices[i].x,vertices[i].y),Point(vertices_next[i].x,vertices_next[i].y),color,1,8,0);
+			line(overlay,Point(vertices[i].x,vertices[i].y),Point(vertices_next[i].x,vertices_next[i].y),color,2,8,0);
 		}
 
 		Mat tmp = Mat::zeros(Size(width, height), CV_8UC3);
 		applyColorMap(overlay, overlay_color, COLORMAP_RAINBOW);
 		add(overlay_color, tmp, tmp, overlay, -1);
-		addWeighted( out_img, 0.5, tmp, 0.5, 0.0, out_img);
+		addWeighted( out_img, 1.0, tmp, 0.5, 0.0, out_img);
 
 		// copy the result for the next frame
 		vertices = vertices_next;

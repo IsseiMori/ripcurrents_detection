@@ -53,19 +53,19 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img) {
 
 			// printf("%f\n",sqrt(jacobian.dot(jacobian)));
 
-			/*
+			
 			Mat jacobianS = Mat_<Pixel2>(2,2);
 			jacobianS.at<float>(0.0) = (jacobian.at<float>(0,0) + jacobian.at<float>(0,0)) / 2;
 			jacobianS.at<float>(0,1) = (jacobian.at<float>(0,1) + jacobian.at<float>(1,0)) / 2;
 			jacobianS.at<float>(1,0) = (jacobian.at<float>(1,0) + jacobian.at<float>(0,1)) / 2;
 			jacobianS.at<float>(1,1) = (jacobian.at<float>(1,1) + jacobian.at<float>(1,1)) / 2;
-			*/
+			
 
 			//float frobeniusNorm = sqrt(sum(jacobian.mul(jacobian))[0]);
-			float frobeniusNorm = jacobian.at<float>(0,0) * jacobian.at<float>(0,0)
-							+ jacobian.at<float>(0,1) * jacobian.at<float>(0,1)
-							+ jacobian.at<float>(1,0) * jacobian.at<float>(1,0)
-							+ jacobian.at<float>(1,1) * jacobian.at<float>(1,1);
+			float frobeniusNorm = jacobianS.at<float>(0,0) * jacobianS.at<float>(0,0)
+							+ jacobianS.at<float>(0,1) * jacobianS.at<float>(0,1)
+							+ jacobianS.at<float>(1,0) * jacobianS.at<float>(1,0)
+							+ jacobianS.at<float>(1,1) * jacobianS.at<float>(1,1);
 			frobeniusNorm = sqrt(frobeniusNorm);
 
 			float theta = atan2(ptr->y, ptr->x)*180/M_PI;	// find angle

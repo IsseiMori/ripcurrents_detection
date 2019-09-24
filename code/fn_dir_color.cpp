@@ -44,7 +44,7 @@ void fn_dir_color::run (int buffer_size) {
 		vector_to_color (average_flow, out_img);
 		drawFrameCount(out_img, framecount);
 
-		addWeighted( out_img, 0.6, out_img_overlay, 0.4, 0.0, out_img_overlay);
+		addWeighted( out_img, 1.0, out_img_overlay, 1.0, 0.0, out_img_overlay);
 
 		draw_colorwheel (out_img);
 		draw_colorwheel (out_img_overlay);
@@ -98,7 +98,7 @@ void fn_dir_color::run_norm (int buffer_size) {
 		drawFrameCount(out_img, framecount);
 
 
-		addWeighted( out_img, 0.5, out_img_overlay, 0.5, 0.0, out_img_overlay);
+		addWeighted( out_img, 1.0, out_img_overlay, 1.0, 0.0, out_img_overlay);
 
 		draw_colorwheel (out_img);
 		draw_colorwheel (out_img_overlay);
@@ -148,7 +148,7 @@ void fn_dir_color::run_dir (int buffer_size) {
 		vector_to_dir_color (average_flow, out_img);
 		drawFrameCount(out_img, framecount);
 
-		addWeighted( out_img, 0.3, out_img_overlay, 0.7, 0.0, out_img_overlay);	
+		addWeighted( out_img, 1.0, out_img_overlay, 0.5, 0.0, out_img_overlay);	
 
 		draw_colorwheel (out_img);
 		draw_colorwheel (out_img_overlay);	
