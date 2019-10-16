@@ -4,14 +4,15 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "fn_grid_buoy.hpp"
+#include "fn_grid_arrow.hpp"
 
 using namespace std;
 
-fn_grid_buoy::fn_grid_buoy (string _file_name, 
+fn_grid_arrow::fn_grid_arrow (string _file_name, 
 							int _height,
 							int _w_count,
-							int _h_count)
+							int _h_count,
+							int _buffer_size)
 							: method(_file_name, _height), 
 							w_count(_w_count), 
 							h_count(_h_count) {
@@ -22,24 +23,39 @@ fn_grid_buoy::fn_grid_buoy (string _file_name,
 
 	max_len = min(diff_x, diff_y);
 
+	buffer_size = _buffer_size;
+	current_buffer = 0;
+
+
 	// create and push Pixel2 points
 	for (int i = 1; i <= w_count; ++i) {
 		for (int j = 1; j <= h_count; ++j) {
 			root_vec.push_back (Pixel2(diff_x * j, diff_y * i));
 			v_vec.push_back (Pixel2(diff_x * j, diff_y * i));
 			relative_vec.push_back (Pixel2(0,0));
+			average_vec.push_back (Pixel2(0,0));
 			isVisible.push_back (true);
 			howLikely.push_back (0);
 			theta_vec.push_back (0);
 		}
 	}
+
+	for (int i = 0; i < buffer_size; ++i) {
+		vector<Pixel2> vec;
+		for (int w = 1; w <= w_count; ++w) {
+			for (int h = 1; h <= h_count; ++h) {
+				vec.push_back (Pixel2(0,0));
+			}
+		}
+		vec_buffer.push_back (vec);
+	}
 }
 
-void fn_grid_buoy::runLK (bool isNorm) {
+void fn_grid_arrow::runLK (bool isNorm) {
 	cout << "Running grid buoy (LK)" << endl;
 
 	string n_str = isNorm? "norm_" : "";
-	VideoWriter* video_output = ini_video_output (file_name +  "_grid_buoy_LK_"
+	VideoWriter* video_output = ini_video_output (file_name +  "_arrow_buoy_LK_"
 		+ n_str + to_string(w_count) + "_" + to_string(h_count));
 
 	ini_frame ();
@@ -52,8 +68,16 @@ void fn_grid_buoy::runLK (bool isNorm) {
 
 		Mat out_img;
 		resized_frame.copyTo (out_img);
+
+		for (size_t i = 0; i < average_vec.size(); ++i) {
+			average_vec[i] -= vec_buffer[current_buffer][i];
+		}
 		
-		vertices_runLK (prev_frame, curr_frame, out_img, isNorm);
+		vec_buffer[current_buffer].clear ();
+		current_buffer++;
+		if ( current_buffer >= buffer_size ) current_buffer = 0;
+
+		vertices_runLK (prev_frame, curr_frame, out_img, isNorm, framecount);
 
 		drawFrameCount(out_img, framecount);
 		
@@ -71,7 +95,7 @@ void fn_grid_buoy::runLK (bool isNorm) {
 
 }
 
-void fn_grid_buoy::runFB () {
+void fn_grid_arrow::runFB () {
 	cout << "Running grid buoy (FB)" << endl;
 
 	VideoWriter* video_output = ini_video_output (file_name + "_grid_buoy_FB_"
@@ -124,7 +148,7 @@ vector alignment
 */
 
 
-void fn_grid_buoy::filter_total_mean () {
+void fn_grid_arrow::filter_total_mean () {
 
 	Pixel2 sum(0,0);
 	for (auto p : relative_vec) sum += p;
@@ -142,7 +166,7 @@ void fn_grid_buoy::filter_total_mean () {
 	}
 }
 
-void fn_grid_buoy::filter_row_col_mean () {
+void fn_grid_arrow::filter_row_col_mean () {
 	
 	for (int row = 0; row < h_count; ++row) {
 
@@ -170,23 +194,23 @@ void fn_grid_buoy::filter_row_col_mean () {
 }
 
 
-float fn_grid_buoy::filter_frequency () {
+float fn_grid_arrow::filter_frequency () {
 
 	#define BIN 6
 	int hist[BIN] = {0,0,0,0,0};
 
 	float ave_magnitude = 0;
 
-	// Create a histgram
+	// Create a histgram and find average magnitude
 	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
 		int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 5);
 		hist[bin]++;
 
-		ave_magnitude += sqrt(relative_vec[i].x * relative_vec[i].x 
-							+ relative_vec[i].y * relative_vec[i].y);
+		ave_magnitude += sqrt(average_vec[i].x * average_vec[i].x 
+							+ average_vec[i].y * average_vec[i].y);
 	}
 
-	ave_magnitude /= relative_vec.size();
+	ave_magnitude /= average_vec.size();
 
 	int max_hist = 0;
 	int max_id = 0;
@@ -201,8 +225,8 @@ float fn_grid_buoy::filter_frequency () {
 	int max_near2 = (max_id + 5 > 5) ? max_id - 1 : max_id + 5;
 
 	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
-		if (sqrt(relative_vec[i].x * relative_vec[i].x 
-			   + relative_vec[i].y * relative_vec[i].y) < ave_magnitude * 0.3) {
+		if (sqrt(average_vec[i].x * average_vec[i].x 
+			   + average_vec[i].y * average_vec[i].y) < ave_magnitude * 0.3) {
 			howLikely[i] = 0;
 			isVisible[i] = false;
 
@@ -234,7 +258,7 @@ float fn_grid_buoy::filter_frequency () {
 	return max_id * 360.0 / BIN + 180.0 / BIN - 180;
 }
 
-void fn_grid_buoy::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool isNorm) {
+void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool isNorm, float framecount) {
 
 	// return status values of calcOpticalFlowPyrLK
 	vector<uchar> status;
@@ -250,7 +274,6 @@ void fn_grid_buoy::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool is
 						 Size(50,50),3, 
 						 TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.1), 
 						 10, 1e-4 );
-
 
 	// eliminate any large movement
 	for ( int i = 0; i < (int)v_next_vec.size(); i++) {
@@ -276,23 +299,23 @@ void fn_grid_buoy::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool is
 
 
 
+		/*
 		if ( abs(v_next_vec[i].x - root_vec[i].x) > max_len
 			|| abs(v_next_vec[i].y - root_vec[i].y) > max_len ) {
 			
 			v_next_vec[i] = v_vec[i];
 		}
+		*/
 
 		float xp = v_next_vec[i].x - root_vec[i].x;
 		float yp = v_next_vec[i].y - root_vec[i].y;
+
+		vec_buffer[current_buffer].push_back (Pixel2(xp,yp) * 200);
+		average_vec[i] += (Pixel2(xp,yp) * 200);
+
 		relative_vec[i] = Pixel2(xp,yp);
-		theta_vec[i] = atan2 (yp, xp) * 180 / M_PI;
-
+		theta_vec[i] = atan2 (average_vec[i].y, average_vec[i].x) * 180 / M_PI;
 	}
-
-	
-	
-	// copy the result for the next frame
-	v_vec = v_next_vec;
 
 	float max_angle = filter_frequency ();
 	float max_x = cos(max_angle) * 10;
@@ -309,23 +332,9 @@ void fn_grid_buoy::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool is
 	}
 	*/
 
-	/*
+	float fc = framecount < buffer_size? framecount : static_cast<float>(buffer_size);
+
 	// draw grid
-	for ( int i = 0; i < (int)v_vec.size(); i++ ) {
-		if (isVisible[i]) {
-			// BGR
-			Scalar base(50, 50, 50);
-			Scalar color1(100, 100 - howLikely[i] * 100, 100 - howLikely[i] * 100);
-			Scalar color2(100 - howLikely[i] * 100, 100 - howLikely[i] * 100, 100);
-
-			circle(out_img,Point(root_vec[i].x,root_vec[i].y),3,base,-1,8,0);
-			circle(out_img,Point(v_vec[i].x,v_vec[i].y),4,color2,-1,8,0);
-			line(out_img,Point(root_vec[i].x,root_vec[i].y),Point(v_vec[i].x,v_vec[i].y),color2,2,8,0);
-		}
-		
-	}*/
-
-
 	for ( int i = 0; i < (int)v_vec.size(); i++ ) {
 		if (isVisible[i]) {
 			// BGR
@@ -333,10 +342,21 @@ void fn_grid_buoy::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool is
 			Scalar color1(100, 100 - howLikely[i] * 100, 100 - howLikely[i] * 100);
 			Scalar color2(0, 255 - howLikely[i] * 255, 255 - howLikely[i] * 100);
 
+			/*
+			if (isVisible[i]) {
+				circle(out_img,Point(root_vec[i].x,root_vec[i].y),4,CV_RGB(0,0,100),-1,8,0);
+				circle(out_img,Point(v_vec[i].x,v_vec[i].y),4,CV_RGB(100,0,0),-1,8,0);
+				line(out_img,Point(root_vec[i].x,root_vec[i].y),Point(v_vec[i].x,v_vec[i].y),color,2,8,0);
+			}
+			else {
+				circle(out_img,Point(root_vec[i].x,root_vec[i].y),4,CV_RGB(100,100,100),-1,8,0);
+				circle(out_img,Point(v_vec[i].x,v_vec[i].y),4,CV_RGB(100,100,100),-1,8,0);
+				line(out_img,Point(root_vec[i].x,root_vec[i].y),Point(v_vec[i].x,v_vec[i].y),CV_RGB(100,100,100),2,8,0);
+			}*/
 			circle(out_img,Point(root_vec[i].x,root_vec[i].y),3,color2,-1,8,0);
-			arrowedLine(out_img, 
-						Point(root_vec[i].x,root_vec[i].y), 
-						Point(v_vec[i].x,v_vec[i].y), 
+			arrowedLine(out_img, Point(root_vec[i].x,root_vec[i].y), 
+						Point(root_vec[i].x + average_vec[i].x / fc,
+							  root_vec[i].y + average_vec[i].y / fc), 
 						color2, 4, 8, 0, 0.7);
 		}
 	}
@@ -349,7 +369,7 @@ void fn_grid_buoy::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool is
 
 
 
-void fn_grid_buoy::vertices_runFB (Mat& flow, Mat& out_img) {
+void fn_grid_arrow::vertices_runFB (Mat& flow, Mat& out_img) {
 
 	// output locations of vertices
 	vector<Pixel2> v_next_vec;

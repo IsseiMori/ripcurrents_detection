@@ -213,6 +213,19 @@ void fn_pathline::runLK (float v, bool isLine) {
 				|| abs(vertices[i].y - vertices_next[i].y) > 20 ) {
 					vertices_next[i] = vertices[i];
 				}
+			
+			/*
+			float dx = vertices_next[i].x - vertices[i].x;
+			float dy = vertices_next[i].y - vertices[i].y;
+			
+			// theta for the delta displacement between 2 frames
+			float theta = atan2 (dy, dx);
+
+			float dt = max(0.1, 50.0/total_frame) * 3;
+		
+			vertices_next[i].x = vertices[i].x + cos(theta) * dt;
+			vertices_next[i].y = vertices[i].y + sin(theta) * dt;
+			*/
 		}
 
 		Scalar color(framecount*(255.0/total_frame));

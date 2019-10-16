@@ -8,11 +8,14 @@
 
 #include "fn_timeline.hpp"
 #include "fn_grid_buoy.hpp"
+#include "fn_grid_arrow.hpp"
 #include "fn_histgram.hpp"
 #include "fn_timex.hpp"
 #include "fn_dir_color.hpp"
 #include "fn_shear.hpp"
 #include "fn_pathline.hpp"
+#include "fn_LK_all_pixel.hpp"
+#include "fn_streakline.hpp"
 
 using namespace std;
 
@@ -151,19 +154,12 @@ int main(int argc, char **argv)
 		}
 		// ripcurrents video.mp4 8 buffer_size(optional)
 		// buffer_size : number of frames to average (default 1)
-		// Output file name : infile_shear_buffersize_color
-		// Output file name : infile_shear_buffersize_overlay
+		// offset : 
+		// normalize : 
 		case 8: {
+			cout << strcmp(argv[5], "0") << endl;
 			fn_shear shear = fn_shear (file_name, 480);
-			if (argc < 4 ) {
-				shear.run (1, false);
-			}
-			else if (argc == 4) {
-				shear.run (stoi (argv[3]), false);
-			}
-			else if (argc > 4) {
-				shear.run (stoi (argv[3]), true);
-			}
+			shear.run (stoi (argv[3]), stoi (argv[4]), strcmp(argv[5], "0") != 0);
 			break;
 		}
 		// ripcurrents video.mp4 9
@@ -182,9 +178,25 @@ int main(int argc, char **argv)
 			}
 			break;
 		}
-		// any test
 		case 10: {
-
+			fn_LK_all_pixel lk = fn_LK_all_pixel (file_name, 480);
+			lk.run ();
+		}
+		case 11: {
+			// ripcurrents video.mp4 11 v_num born_dist max_num
+			// v_num : number of streamlines
+			// born_dist : min distance to birth the next vertex
+			// max_num : max number of vertices in a streamline. Exceeding this will be removed
+			fn_streakline streakline = fn_streakline (file_name, 480, stoi (argv[3]), stof (argv[4]), stoi (argv[5]));
+			streakline.run (true);
+		}
+		// ripcurrents video.mp4 12 v_count(optional) h_count(optional)
+		// v_count h_count : number of buoys in vertical and horizontal (default 10)
+		// Output file name : infile_grid_buoy_LK_vcount_hcount
+		case 12: {
+			cout << "Usage: ripcurrents video.mp4 1 v_count(optional) h_count(optional)" << endl;
+			fn_grid_arrow g_arrow = fn_grid_arrow (file_name, 480, stoi (argv[3]), stoi (argv[4]), stoi (argv[5]));
+			g_arrow.runLK(true);
 		}
 		default: {
 			break;

@@ -18,14 +18,12 @@ fn_shear::fn_shear (string _file_name,
 }
 
 
-void fn_shear::shearRateToColor(Mat& current, Mat& out_img) {
+void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset) {
 
 	float max_frobeniusNorm_new = 0.0;
 
 	float global_theta = 0;
 	float global_magnitude = 0;
-
-	int offset = 10;
 
 	// Iterate through all pixels except for the very edge
 	for ( int row = offset; row < current.rows - offset; row++ ) {
@@ -39,6 +37,11 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img) {
 			Pixel2 below = current.at<Pixel2>(row+offset, col);
 			Pixel2 left = current.at<Pixel2>(row, col-offset);
 			Pixel2 right = current.at<Pixel2>(row, col+offset);
+
+			float dot_hor = right.x * left.x + right.y * left.y;
+			float dot_ver = above.x * below.x + above.y * below.y;
+
+			float dot = sqrt(dot_hor * dot_hor + dot_ver * dot_ver);
 
 			// Find the velocity gradient matrix
 			/*
@@ -72,7 +75,8 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img) {
 			theta += theta < 0 ? 360 : 0;	// enforce strict positive angle
 			
 			// store vector data
-			ptr2->x = 128 - frobeniusNorm*128/max_frobeniusNorm;
+			ptr2->x = 128 - dot*128/max_frobeniusNorm;
+			// ptr2->x = 128 - frobeniusNorm*128/max_frobeniusNorm;
 			ptr2->y = 255;
             ptr2->z = 255;
 			// ptr2->z = 255;
@@ -80,7 +84,8 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img) {
 
 			// store the previous max to maxmin next frame
 			if ( sqrt(ptr->x * ptr->x + ptr->y * ptr->y) > max_displacement ) max_displacement = sqrt(ptr->x * ptr->x + ptr->y * ptr->y);
-			max_frobeniusNorm_new = max(frobeniusNorm, max_frobeniusNorm_new);
+			// max_frobeniusNorm_new = max(frobeniusNorm, max_frobeniusNorm_new);
+			max_frobeniusNorm_new = max(dot, max_frobeniusNorm_new);
 	
 			global_theta += ptr2->x * ptr2->z;
 			global_magnitude += ptr2->z;
@@ -97,13 +102,13 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img) {
 	cvtColor(out_img, out_img, COLOR_HSV2BGR);
 }
 
-void fn_shear::run (int buffer_size, bool isNorm) {
+void fn_shear::run (int buffer_size, int offset, bool isNorm) {
 	cout << "Running shear color map" << endl;
 
 	string n_str = isNorm? "norm_" : "";
 
-	VideoWriter* video_output_color = ini_video_output (file_name + "_shear_" + n_str + to_string(buffer_size) + "_color");
-	VideoWriter* video_output_overlay = ini_video_output (file_name + "_shear_" + n_str + to_string(buffer_size) + "_overlay");
+	VideoWriter* video_output_color = ini_video_output (file_name + "_shear_" + n_str + to_string(buffer_size) + "_" + to_string(offset) + "_color");
+	VideoWriter* video_output_overlay = ini_video_output (file_name + "_shear_" + n_str + to_string(buffer_size) + "_" + to_string(offset) + "_overlay");
 
 	ini_frame();
 	ini_buffer(buffer_size);
@@ -133,7 +138,7 @@ void fn_shear::run (int buffer_size, bool isNorm) {
 
 		update_buffer (buffer_size);
 
-		shearRateToColor (average_flow, out_img);
+		shearRateToColor (average_flow, out_img, offset);
 		//vector_to_color (average_flow, out_img_overlay);
 
 		drawFrameCount(out_img, framecount);

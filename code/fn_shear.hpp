@@ -16,6 +16,6 @@ class fn_shear: public method {
 	public:
 		fn_shear (string _file_name,
 					 int _height);
-		void run (int buffer_size, bool isNorm);
-		void shearRateToColor(Mat& current, Mat& out_img);
+		void run (int buffer_size, int offset, bool isNorm);
+		void shearRateToColor(Mat& current, Mat& out_img, int offset);
 };
