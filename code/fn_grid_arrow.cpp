@@ -62,8 +62,6 @@ void fn_grid_arrow::runLK (bool isNorm) {
 
 	for (int framecount = 1; true; ++framecount) {
 
-		cout << "Frame " << framecount << endl;
-
 		if (read_frame()) break;
 
 		Mat out_img;
@@ -104,8 +102,6 @@ void fn_grid_arrow::runFB () {
 	ini_frame ();
 
 	for (int framecount = 1; true; ++framecount) {
-
-		cout << "Frame " << framecount << endl;
 
 		if (read_frame()) break;
 
@@ -195,27 +191,38 @@ void fn_grid_arrow::filter_row_col_mean () {
 
 
 float fn_grid_arrow::filter_frequency () {
-
 	#define BIN 6
-	int hist[BIN] = {0,0,0,0,0};
+	int hist[6] = {0,0,0,0,0,0};
 
 	float ave_magnitude = 0;
 
 	// Create a histgram and find average magnitude
 	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
-		int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 5);
-		hist[bin]++;
-
 		ave_magnitude += sqrt(average_vec[i].x * average_vec[i].x 
 							+ average_vec[i].y * average_vec[i].y);
 	}
 
 	ave_magnitude /= average_vec.size();
 
+	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
+		float magnitude = sqrt(average_vec[i].x * average_vec[i].x 
+							 + average_vec[i].y * average_vec[i].y);
+		if (magnitude > ave_magnitude * 0.5) {
+			int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 6);
+			if (bin == 6) bin = 0;
+			hist[bin]++;
+		}
+		
+	}
+
 	int max_hist = 0;
 	int max_id = 0;
+	//cout << "BIN" << endl;
 	for (int i = 0; i < BIN; ++i) {
-		if (hist[i] > max_hist) max_id = i;
+		if (hist[i] > max_hist) {
+			max_id = i;
+			max_hist = hist[i];
+		}
 	}
 
 	int oppose1 = (max_id + 3 > 5) ? max_id - 3 : max_id + 3;
@@ -231,7 +238,10 @@ float fn_grid_arrow::filter_frequency () {
 			isVisible[i] = false;
 
 		} else {
-			int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 5);
+			int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 6);
+			if (bin == 6) bin = 0;
+			// howLikely[i] = bin;
+			// isVisible[i] = true;
 			if (bin == oppose1 ) {
 				howLikely[i] = 1;
 				isVisible[i] = true;
@@ -249,17 +259,22 @@ float fn_grid_arrow::filter_frequency () {
 				isVisible[i] = false;
 			}
 			else {
-				howLikely[i] = 0.1;
-				isVisible[i] = true;
+				howLikely[i] = 0;
+				isVisible[i] = false;
+				cout << "exception : " <<  bin << endl;
 			}
 		}
+		// isVisible[i] = true;
 	}
-
-	return max_id * 360.0 / BIN + 180.0 / BIN - 180;
+	return (max_id / 6.0 * M_PI * 2);
 }
 
-void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool isNorm, float framecount) {
+/*
+0 <-
+1 ^
+*/
 
+void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool isNorm, float framecount) {
 	// return status values of calcOpticalFlowPyrLK
 	vector<uchar> status;
 	vector<float> err;
@@ -316,10 +331,11 @@ void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool i
 		relative_vec[i] = Pixel2(xp,yp);
 		theta_vec[i] = atan2 (average_vec[i].y, average_vec[i].x) * 180 / M_PI;
 	}
+	
 
 	float max_angle = filter_frequency ();
-	float max_x = cos(max_angle) * 10;
-	float max_y = sin(max_angle) * 10;
+	float max_x = -cos(max_angle) * 10;
+	float max_y = -sin(max_angle) * 10;
 
 	/*
 	// delete out of bound vertices
@@ -332,6 +348,7 @@ void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool i
 	}
 	*/
 
+
 	float fc = framecount < buffer_size? framecount : static_cast<float>(buffer_size);
 
 	// draw grid
@@ -341,6 +358,46 @@ void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool i
 			Scalar base(50, 50, 50);
 			Scalar color1(100, 100 - howLikely[i] * 100, 100 - howLikely[i] * 100);
 			Scalar color2(0, 255 - howLikely[i] * 255, 255 - howLikely[i] * 100);
+
+			/*
+			Color check
+			if (howLikely[i] == 1) {
+				color2 = Scalar(0,0,0);
+			} 
+			else if (howLikely[i] == 2) {
+				color2 = Scalar(255,0,0);
+			}
+			else if (howLikely[i] == 3) {
+				color2 = Scalar(255,255,255);
+			}
+			else if (howLikely[i] == 4) {
+				color2 = Scalar(0,0,255);
+			}
+			else {
+				color2 = Scalar(100,100,100);
+			}
+
+			switch(int(howLikely[i])) {
+				case (0) : 
+					color2 = Scalar(0,0,0);
+					break;
+				case (1) : 
+					color2 = Scalar(0,0,255);
+					break;
+				case (2) : 
+					color2 = Scalar(0,255,0);
+					break;
+				case (3) : 
+					color2 = Scalar(0,255,255);
+					break;
+				case (4) : 
+					color2 = Scalar(255,0,0);
+					break;
+				case (5) : 
+					color2 = Scalar(255,255,255);
+					break;
+			}
+			*/
 
 			/*
 			if (isVisible[i]) {

@@ -173,25 +173,38 @@ void fn_grid_buoy::filter_row_col_mean () {
 float fn_grid_buoy::filter_frequency () {
 
 	#define BIN 6
-	int hist[BIN] = {0,0,0,0,0};
+	int hist[6] = {0,0,0,0,0,0};
 
 	float ave_magnitude = 0;
 
 	// Create a histgram
 	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
-		int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 5);
-		hist[bin]++;
-
 		ave_magnitude += sqrt(relative_vec[i].x * relative_vec[i].x 
 							+ relative_vec[i].y * relative_vec[i].y);
 	}
 
 	ave_magnitude /= relative_vec.size();
 
+	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
+		float magnitude = sqrt(relative_vec[i].x * relative_vec[i].x 
+							+ relative_vec[i].y * relative_vec[i].y);
+		if (magnitude > ave_magnitude * 0.5) {
+			int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 6);
+			if (bin == 6) bin = 0;
+			hist[bin]++;
+		}
+		
+	}
+
 	int max_hist = 0;
 	int max_id = 0;
+	//cout << "BIN" << endl;
 	for (int i = 0; i < BIN; ++i) {
-		if (hist[i] > max_hist) max_id = i;
+		if (hist[i] > max_hist) {
+			max_id = i;
+			max_hist = hist[i];
+		}
+		//cout << hist[i] << endl;
 	}
 
 	int oppose1 = (max_id + 3 > 5) ? max_id - 3 : max_id + 3;
@@ -207,7 +220,8 @@ float fn_grid_buoy::filter_frequency () {
 			isVisible[i] = false;
 
 		} else {
-			int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 5);
+			int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 6);
+			if (bin == 6) bin = 0;
 			if (bin == oppose1 ) {
 				howLikely[i] = 1;
 				isVisible[i] = true;
@@ -225,13 +239,15 @@ float fn_grid_buoy::filter_frequency () {
 				isVisible[i] = false;
 			}
 			else {
-				howLikely[i] = 0.1;
-				isVisible[i] = true;
+				howLikely[i] = 0;
+				isVisible[i] = false;
+				cout << "exception" << endl;
 			}
 		}
+        // isVisible[i] = true;
 	}
 
-	return max_id * 360.0 / BIN + 180.0 / BIN - 180;
+	return (max_id / 6.0 * M_PI * 2);
 }
 
 void fn_grid_buoy::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool isNorm) {
@@ -295,8 +311,8 @@ void fn_grid_buoy::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool is
 	v_vec = v_next_vec;
 
 	float max_angle = filter_frequency ();
-	float max_x = cos(max_angle) * 10;
-	float max_y = sin(max_angle) * 10;
+	float max_x = -cos(max_angle) * 10;
+	float max_y = -sin(max_angle) * 10;
 
 	/*
 	// delete out of bound vertices
