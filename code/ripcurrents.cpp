@@ -17,6 +17,7 @@
 #include "fn_LK_all_pixel.hpp"
 #include "fn_streakline.hpp"
 #include "fn_philip.hpp"
+#include <time.h>
 
 using namespace std;
 
@@ -30,6 +31,8 @@ int main(int argc, char **argv)
 	{
 		option =  stoi(argv[2]);
 	}
+
+	clock_t start = clock();
 
 	switch (option) {
 		// ripcurrents video.mp4 0 v_num(optional)
@@ -207,6 +210,10 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
+
+	clock_t end = clock();
+    const double time = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000.0;
+    printf("time %lf[ms]\n", time);
 
 	return 0;
 }
