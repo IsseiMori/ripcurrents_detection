@@ -52,7 +52,7 @@ fn_grid_arrow::fn_grid_arrow (string _file_name,
 }
 
 void fn_grid_arrow::runLK (bool isNorm) {
-	cout << "Running grid buoy (LK)" << endl;
+	cout << "Running grid arrow (LK)" << endl;
 
 	string n_str = isNorm? "norm_" : "";
 	VideoWriter* video_output = ini_video_output (file_name +  "_arrow_buoy_LK_"
@@ -264,7 +264,7 @@ float fn_grid_arrow::filter_frequency () {
 				cout << "exception : " <<  bin << endl;
 			}
 		}
-		// isVisible[i] = true;
+	 	// isVisible[i] = true;
 	}
 	return (max_id / 6.0 * M_PI * 2);
 }
@@ -286,7 +286,7 @@ void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool i
 	// run LK for all vertices
 	calcOpticalFlowPyrLK(u_prev, u_curr, v_vec, 
 						 v_next_vec, status, err, 
-						 Size(50,50),3, 
+						 Size(20,20),3, 
 						 TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.1), 
 						 10, 1e-4 );
 
@@ -311,7 +311,6 @@ void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool i
 			v_next_vec[i].x = v_vec[i].x + cos(theta) * dt;
 			v_next_vec[i].y = v_vec[i].y + sin(theta) * dt;
 		} 
-
 
 
 		/*

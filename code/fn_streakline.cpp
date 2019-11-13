@@ -126,7 +126,7 @@ void fn_streakline::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, fl
 	// run LK for all vertices
 	calcOpticalFlowPyrLK(u_prev, u_curr, vertices, 
 						 vertices_next, status, err, 
-						 Size(50,50),3, 
+						 Size(20,20),3, 
 						 TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.1), 
 						 10, 1e-4 );
 

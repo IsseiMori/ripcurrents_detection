@@ -16,6 +16,7 @@
 #include "fn_pathline.hpp"
 #include "fn_LK_all_pixel.hpp"
 #include "fn_streakline.hpp"
+#include "fn_philip.hpp"
 
 using namespace std;
 
@@ -114,7 +115,6 @@ int main(int argc, char **argv)
 		// Output file name : infile_dir_color_buffersize_color
 		// Output file name : infile_dir_color_buffersize_overlay
 		case 5: {
-			cout << file_name << endl;
 			fn_dir_color dir_color = fn_dir_color (file_name, 480);
 			if (argc < 4 ) {
 				dir_color.run ();
@@ -197,6 +197,11 @@ int main(int argc, char **argv)
 			cout << "Usage: ripcurrents video.mp4 1 v_count(optional) h_count(optional)" << endl;
 			fn_grid_arrow g_arrow = fn_grid_arrow (file_name, 480, stoi (argv[3]), stoi (argv[4]), stoi (argv[5]));
 			g_arrow.runLK(true);
+		}
+		// Philip
+		case 13: {
+			fn_philip philip = fn_philip (file_name, 480);
+			philip.run(90, stoi (argv[3]), stoi (argv[4]));
 		}
 		default: {
 			break;

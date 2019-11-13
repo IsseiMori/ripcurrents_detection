@@ -26,7 +26,6 @@ void fn_dir_color::run (int buffer_size) {
 	ini_draw_colorwheel ();
 
 	for (int framecount = 1; true; ++framecount) {
-		cout << "Frame " << framecount << endl;
 
 		if (read_frame()) break;
 
@@ -78,7 +77,6 @@ void fn_dir_color::run_norm (int buffer_size) {
 	ini_draw_colorwheel ();
 
 	for (int framecount = 1; true; ++framecount) {
-		cout << "Frame " << framecount << endl;
 
 		if (read_frame()) break;
 
@@ -132,7 +130,6 @@ void fn_dir_color::run_dir (int buffer_size) {
 	ini_draw_colorwheel ();
 
 	for (int framecount = 1; true; ++framecount) {
-		cout << "Frame " << framecount << endl;
 
 		if (read_frame()) break;
 
