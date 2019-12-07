@@ -113,7 +113,7 @@ void fn_pathline::calc_pathline (Mat& out_img, Mat& overlay, Mat& overlay_color,
 	}
 
 	Mat tmp = Mat::zeros(Size(width, height), CV_8UC3);
-	applyColorMap(overlay, overlay_color, COLORMAP_RAINBOW);
+	applyColorMap(overlay, overlay_color, COLORMAP_JET);
 	add(overlay_color, tmp, tmp, overlay, -1);
 	addWeighted( out_img, 1.0, tmp, 0.5, 0.0, out_img);
 
@@ -214,7 +214,7 @@ void fn_pathline::runLK (float v, bool isLine) {
 					vertices_next[i] = vertices[i];
 				}
 			
-			/*
+			
 			float dx = vertices_next[i].x - vertices[i].x;
 			float dy = vertices_next[i].y - vertices[i].y;
 			
@@ -225,7 +225,7 @@ void fn_pathline::runLK (float v, bool isLine) {
 		
 			vertices_next[i].x = vertices[i].x + cos(theta) * dt;
 			vertices_next[i].y = vertices[i].y + sin(theta) * dt;
-			*/
+			
 		}
 
 		Scalar color(framecount*(255.0/total_frame));

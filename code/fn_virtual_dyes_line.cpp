@@ -3,11 +3,11 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "fn_streakline.hpp"
+#include "fn_virtual_dyes_line.hpp"
 
 using namespace std;
 
-void mouse_callback_streakline(int event, int x, int y, int, void *userdata)
+void mouse_callback_virtual_dyes_line(int event, int x, int y, int, void *userdata)
 {
     if (event == EVENT_LBUTTONDOWN) {
 		cout << x << " " << y << endl;
@@ -23,7 +23,7 @@ void mouse_callback_streakline(int event, int x, int y, int, void *userdata)
     }
 }
 
-fn_streakline::fn_streakline (string file_name, 
+fn_virtual_dyes_line::fn_virtual_dyes_line (string file_name, 
 					int _height,
 					int _vnum,
 					float _born_distance,
@@ -33,7 +33,7 @@ fn_streakline::fn_streakline (string file_name,
 	max_num = _max_num;
 }
 
-void fn_streakline::run (bool isNorm) {
+void fn_virtual_dyes_line::run (bool isNorm) {
 	cout << "Running timeline" << endl;
 
 	ini_frame();
@@ -42,7 +42,7 @@ void fn_streakline::run (bool isNorm) {
 
 	pair<vector<pair<Pixel2, Pixel2>>, Pixel2*> vec_and_pixel;
 
-	setMouseCallback("click start and end", mouse_callback_streakline, &vec_and_pixel);
+	setMouseCallback("click start and end", mouse_callback_virtual_dyes_line, &vec_and_pixel);
 
 	while (vec_and_pixel.first.size() == 0) {
 		waitKey();
@@ -65,7 +65,7 @@ void fn_streakline::run (bool isNorm) {
 
 	string n_str = isNorm? "norm_" : "";
 
-	VideoWriter* video_output = ini_video_output (file_name +  "_streakline_" + n_str
+	VideoWriter* video_output = ini_video_output (file_name +  "_VDL_" + n_str
 		+ to_string(static_cast<int>(vec_and_pixel.first[0].first.x)) + "_" 
 		+ to_string(static_cast<int>(vec_and_pixel.first[0].first.y)) + "_"
 		+ to_string(static_cast<int>(vec_and_pixel.first[0].second.x)) + "_" 
@@ -99,13 +99,13 @@ void fn_streakline::run (bool isNorm) {
 
 }
 
-fn_streakline::streakline::streakline (Pixel2 _root) {
+fn_virtual_dyes_line::streakline::streakline (Pixel2 _root) {
 	root = _root;
 	vertices.push_back (root);
 }
 
 
-void fn_streakline::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, float born_d, int max_n, bool isNorm) {
+void fn_virtual_dyes_line::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, float born_d, int max_n, bool isNorm) {
 
 	// return status values of calcOpticalFlowPyrLK
 	vector<uchar> status;
@@ -144,7 +144,7 @@ void fn_streakline::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, fl
 			
 			float theta = atan2 (y, x);
 
-			float dt = 3;
+			float dt = 0.5;
 		
 			vertices_next[i].x = vertices[i].x + cos(theta) * dt;
 			vertices_next[i].y = vertices[i].y + sin(theta) * dt;
@@ -165,11 +165,11 @@ void fn_streakline::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, fl
 	*/
 
 	// draw edges
-	circle(out_img,Point(root.x,root.y),4,CV_RGB(0,0,100),-1,8,0);
-	line(out_img,Point(root.x,root.y),Point(vertices[vertices.size() - 1].x,vertices[vertices.size() - 1].y),CV_RGB(100,0,0),2,8,0);
-	circle(out_img,Point(vertices[vertices.size() - 1].x,vertices[vertices.size() - 1].y),4,CV_RGB(0,0,100),-1,8,0);
-	for ( int i = (int)vertices.size() - 2; i >= 0; --i ) {
-		line(out_img,Point(vertices[i].x,vertices[i].y),Point(vertices[i+1].x,vertices[i+1].y),CV_RGB(100,0,0),2,8,0);
-		circle(out_img,Point(vertices[i].x,vertices[i].y),4,CV_RGB(0,0,100),-1,8,0);
-	}
+	Mat overlay;
+    double opacity = 0.03;
+    for ( int i = 0; i < (int)vertices.size(); i++ ) {
+        out_img.copyTo(overlay);
+        circle(overlay,Point(vertices[i].x,vertices[i].y),40,CV_RGB(100,0,0),-1,8,0);
+        addWeighted(overlay, opacity, out_img, 1 - opacity, 0, out_img, -1);
+    }
 }

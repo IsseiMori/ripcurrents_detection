@@ -72,8 +72,6 @@ void fn_grid_arrow::runLK (bool isNorm) {
 		}
 		
 		vec_buffer[current_buffer].clear ();
-		current_buffer++;
-		if ( current_buffer >= buffer_size ) current_buffer = 0;
 
 		vertices_runLK (prev_frame, curr_frame, out_img, isNorm, framecount);
 
@@ -84,6 +82,9 @@ void fn_grid_arrow::runLK (bool isNorm) {
 
 		curr_frame.copyTo (prev_frame);
 		if ( waitKey(1) == 27) break;
+
+        current_buffer++;
+        if ( current_buffer >= buffer_size ) current_buffer = 0;
 
 	}
 
@@ -190,8 +191,7 @@ void fn_grid_arrow::filter_row_col_mean () {
 }
 
 
-float fn_grid_arrow::filter_frequency () {
-	#define BIN 6
+float fn_grid_arrow::filter_frequency6 () {
 	int hist[6] = {0,0,0,0,0,0};
 
 	float ave_magnitude = 0;
@@ -218,7 +218,7 @@ float fn_grid_arrow::filter_frequency () {
 	int max_hist = 0;
 	int max_id = 0;
 	//cout << "BIN" << endl;
-	for (int i = 0; i < BIN; ++i) {
+	for (int i = 0; i < 6; ++i) {
 		if (hist[i] > max_hist) {
 			max_id = i;
 			max_hist = hist[i];
@@ -233,7 +233,7 @@ float fn_grid_arrow::filter_frequency () {
 
 	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
 		if (sqrt(average_vec[i].x * average_vec[i].x 
-			   + average_vec[i].y * average_vec[i].y) < ave_magnitude * 0.3) {
+			   + average_vec[i].y * average_vec[i].y) < ave_magnitude * 0.5) {
 			howLikely[i] = 0;
 			isVisible[i] = false;
 
@@ -269,6 +269,144 @@ float fn_grid_arrow::filter_frequency () {
 	return (max_id / 6.0 * M_PI * 2);
 }
 
+float fn_grid_arrow::filter_frequency8 () {
+	int hist[8] = {0,0,0,0,0,0,0,0};
+
+	float ave_magnitude = 0;
+
+	// Create a histgram and find average magnitude
+	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
+		ave_magnitude += sqrt(average_vec[i].x * average_vec[i].x 
+							+ average_vec[i].y * average_vec[i].y);
+	}
+
+	ave_magnitude /= average_vec.size();
+
+	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
+		float magnitude = sqrt(average_vec[i].x * average_vec[i].x 
+							 + average_vec[i].y * average_vec[i].y);
+		if (magnitude > ave_magnitude * 0.5) {
+			int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 8);
+			if (bin == 8) bin = 0;
+			hist[bin]++;
+		}
+		
+	}
+
+	int max_hist = 0;
+	int max_id = 0;
+	//cout << "BIN" << endl;
+	for (int i = 0; i < 8; ++i) {
+		if (hist[i] > max_hist) {
+			max_id = i;
+			max_hist = hist[i];
+		}
+	}
+
+	int oppose1 = (max_id + 4 > 7) ? max_id - 4 : max_id + 4;
+	int opp_near1 = (max_id + 5 > 7) ? max_id - 3 : max_id + 5;
+	int opp_near2 = (max_id + 3 > 7) ? max_id - 5 : max_id + 3;
+
+
+	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
+		if (sqrt(average_vec[i].x * average_vec[i].x 
+			   + average_vec[i].y * average_vec[i].y) < ave_magnitude * 0.5) {
+			howLikely[i] = 0;
+			isVisible[i] = false;
+
+		} else {
+			int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 8);
+			if (bin == 8) bin = 0;
+			// howLikely[i] = bin;
+			// isVisible[i] = true;
+			if (bin == oppose1 ) {
+				howLikely[i] = 1;
+				isVisible[i] = true;
+			}
+			else if (bin == opp_near1 || bin == opp_near2 ) {
+				howLikely[i] = 0.5;
+				isVisible[i] = true;
+			}
+			else {
+				howLikely[i] = 0;
+				isVisible[i] = false;
+				//cout << "exception : " <<  bin << endl;
+			}
+		}
+	 	// isVisible[i] = true;
+	}
+	return (max_id / 8.0 * M_PI * 2);
+}
+
+float fn_grid_arrow::filter_frequency10 () {
+	int hist[10] = {0,0,0,0,0,0,0,0,0,0};
+
+	float ave_magnitude = 0;
+
+	// Create a histgram and find average magnitude
+	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
+		ave_magnitude += sqrt(average_vec[i].x * average_vec[i].x 
+							+ average_vec[i].y * average_vec[i].y);
+	}
+
+	ave_magnitude /= average_vec.size();
+
+	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
+		float magnitude = sqrt(average_vec[i].x * average_vec[i].x 
+							 + average_vec[i].y * average_vec[i].y);
+		if (magnitude > ave_magnitude * 0.5) {
+			int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 10);
+			if (bin == 10) bin = 0;
+			hist[bin]++;
+		}
+		
+	}
+
+	int max_hist = 0;
+	int max_id = 0;
+	//cout << "BIN" << endl;
+	for (int i = 0; i < 10; ++i) {
+		if (hist[i] > max_hist) {
+			max_id = i;
+			max_hist = hist[i];
+		}
+	}
+
+	int oppose1 = (max_id + 5 > 9) ? max_id - 6 : max_id + 5;
+	int opp_near1 = (max_id + 6 > 9) ? max_id - 4 : max_id + 6;
+	int opp_near2 = (max_id + 4 > 9) ? max_id - 6 : max_id + 4;
+
+
+	for (int i = 0; i < static_cast<int>(theta_vec.size()); ++i) {
+		if (sqrt(average_vec[i].x * average_vec[i].x 
+			   + average_vec[i].y * average_vec[i].y) < ave_magnitude * 0.5) {
+			howLikely[i] = 0;
+			isVisible[i] = false;
+
+		} else {
+			int bin = static_cast<int>((theta_vec[i] + 180) / 360 * 10);
+			if (bin == 10) bin = 0;
+			// howLikely[i] = bin;
+			// isVisible[i] = true;
+			if (bin == oppose1 ) {
+				howLikely[i] = 1;
+				isVisible[i] = true;
+			}
+			else if (bin == opp_near1 || bin == opp_near2 ) {
+				howLikely[i] = 0.5;
+				isVisible[i] = true;
+			}
+			else {
+				howLikely[i] = 0;
+				isVisible[i] = false;
+				//cout << "exception : " <<  bin << endl;
+			}
+		}
+	 	// isVisible[i] = true;
+	}
+	return (max_id / 10.0 * M_PI * 2);
+}
+
 /*
 0 <-
 1 ^
@@ -292,11 +430,13 @@ void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool i
 
 	// eliminate any large movement
 	for ( int i = 0; i < (int)v_next_vec.size(); i++) {
+        /*
 		if ( abs(v_vec[i].x - v_next_vec[i].x) > 20
 			|| abs(v_vec[i].y - v_next_vec[i].y) > 20 ) {
 			
 			v_next_vec[i] = v_vec[i];
 		}
+        */
 
 	
 		if (isNorm) {
@@ -321,6 +461,7 @@ void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool i
 		}
 		*/
 
+
 		float xp = v_next_vec[i].x - root_vec[i].x;
 		float yp = v_next_vec[i].y - root_vec[i].y;
 
@@ -332,7 +473,8 @@ void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool i
 	}
 	
 
-	float max_angle = filter_frequency ();
+
+	float max_angle = filter_frequency6 ();
 	float max_x = -cos(max_angle) * 10;
 	float max_y = -sin(max_angle) * 10;
 
@@ -357,6 +499,9 @@ void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool i
 			Scalar base(50, 50, 50);
 			Scalar color1(100, 100 - howLikely[i] * 100, 100 - howLikely[i] * 100);
 			Scalar color2(0, 255 - howLikely[i] * 255, 255 - howLikely[i] * 100);
+
+            // if (i == 135) color2 = Scalar(255,255,255);
+
 
 			/*
 			Color check
@@ -409,18 +554,18 @@ void fn_grid_arrow::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img, bool i
 				circle(out_img,Point(v_vec[i].x,v_vec[i].y),4,CV_RGB(100,100,100),-1,8,0);
 				line(out_img,Point(root_vec[i].x,root_vec[i].y),Point(v_vec[i].x,v_vec[i].y),CV_RGB(100,100,100),2,8,0);
 			}*/
-			circle(out_img,Point(root_vec[i].x,root_vec[i].y),3,color2,-1,8,0);
+			//circle(out_img,Point(root_vec[i].x,root_vec[i].y),3,color2,-1,8,0);
 			arrowedLine(out_img, Point(root_vec[i].x,root_vec[i].y), 
 						Point(root_vec[i].x + average_vec[i].x / fc,
 							  root_vec[i].y + average_vec[i].y / fc), 
-						color2, 4, 8, 0, 0.7);
+						color2, 2, LINE_AA, 0, 0.4);
 		}
 	}
 
 
 	arrowedLine(out_img, Point(20,20), 
 						Point(20+max_x*1.2,20+max_y*1.2), 
-						Scalar(255,255,255), 2, 8, 0, 0.5);
+						Scalar(255,255,255), 3, 8, 0, 0.4);
 }
 
 

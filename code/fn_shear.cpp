@@ -41,28 +41,39 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset) {
 			float dot_hor = right.x * left.x + right.y * left.y;
 			float dot_ver = above.x * below.x + above.y * below.y;
 
-			float dot = sqrt(dot_hor * dot_hor + dot_ver * dot_ver);
+			//float dot = sqrt(dot_hor * dot_hor + dot_ver * dot_ver);
+            float dot = max(dot_hor, dot_ver);
 
 			// Find the velocity gradient matrix
 			/*
 			/ | dvx/dx dvx/dy |
  			/ | dvy/dx dvy/dy |
 			*/
-			Mat jacobian = Mat_<Pixel2>(2,2);
+			Mat jacobian = Mat_<float>(2,2);
 			jacobian.at<float>(0,0) = right.x - left.x;
 			jacobian.at<float>(0,1) = above.x - below.x;
 			jacobian.at<float>(1,0) = right.y - left.y;
 			jacobian.at<float>(1,1) = above.y - below.y;
 
+
+
 			// printf("%f\n",sqrt(jacobian.dot(jacobian)));
 
 			
-			Mat jacobianS = Mat_<Pixel2>(2,2);
+			Mat jacobianS = Mat_<float>(2,2);
 			jacobianS.at<float>(0.0) = (jacobian.at<float>(0,0) + jacobian.at<float>(0,0)) / 2;
 			jacobianS.at<float>(0,1) = (jacobian.at<float>(0,1) + jacobian.at<float>(1,0)) / 2;
 			jacobianS.at<float>(1,0) = (jacobian.at<float>(1,0) + jacobian.at<float>(0,1)) / 2;
 			jacobianS.at<float>(1,1) = (jacobian.at<float>(1,1) + jacobian.at<float>(1,1)) / 2;
 			
+            Mat e,v;
+            eigen(jacobianS, e, v);
+            float emax = max(abs(e.at<float>(0)), abs(e.at<float>(1)));
+            float emin = min(abs(e.at<float>(0)), abs(e.at<float>(1)));
+            float eratio = emax / emin;
+
+            cout << emax << endl;
+
 
 			//float frobeniusNorm = sqrt(sum(jacobian.mul(jacobian))[0]);
 			float frobeniusNorm = jacobianS.at<float>(0,0) * jacobianS.at<float>(0,0)
@@ -75,8 +86,9 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset) {
 			theta += theta < 0 ? 360 : 0;	// enforce strict positive angle
 			
 			// store vector data
-			ptr2->x = 128 - dot*128/max_frobeniusNorm;
-			// ptr2->x = 128 - frobeniusNorm*128/max_frobeniusNorm;
+			//ptr2->x = 128 - dot*128/max_frobeniusNorm;
+			//ptr2->x = 128 - frobeniusNorm*128/max_frobeniusNorm;
+            ptr2->x = 128 - emax*128/max_frobeniusNorm;
 			ptr2->y = 255;
             ptr2->z = 255;
 			// ptr2->z = 255;
@@ -84,8 +96,9 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset) {
 
 			// store the previous max to maxmin next frame
 			if ( sqrt(ptr->x * ptr->x + ptr->y * ptr->y) > max_displacement ) max_displacement = sqrt(ptr->x * ptr->x + ptr->y * ptr->y);
-			// max_frobeniusNorm_new = max(frobeniusNorm, max_frobeniusNorm_new);
-			max_frobeniusNorm_new = max(dot, max_frobeniusNorm_new);
+			//max_frobeniusNorm_new = max(frobeniusNorm, max_frobeniusNorm_new);
+			//max_frobeniusNorm_new = max(dot, max_frobeniusNorm_new);
+            max_frobeniusNorm_new = max(emax, max_frobeniusNorm_new);
 	
 			global_theta += ptr2->x * ptr2->z;
 			global_magnitude += ptr2->z;

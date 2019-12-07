@@ -141,6 +141,7 @@ void timeline::runLK(Mat u_prev, Mat u_curr, Mat& out_img, bool isNorm) {
 						 10, 1e-4 );
 
 
+
 	// eliminate any large movement
 	for ( int i = 0; i < (int)vertices_next.size(); i++) {
 		if ( abs(vertices[i].x - vertices_next[i].x) > 20
@@ -154,12 +155,28 @@ void timeline::runLK(Mat u_prev, Mat u_curr, Mat& out_img, bool isNorm) {
 			
 			float theta = atan2 (y, x);
 
-			float dt = 0.3;
+			float dt = 1;
 		
 			vertices_next[i].x = vertices[i].x + cos(theta) * dt;
 			vertices_next[i].y = vertices[i].y + sin(theta) * dt;
 		} 
 	}
+
+    // Calculate average
+    /*
+    Pixel2 mean = Pixel2(0,0);
+    for ( int i = 0; i < (int)vertices_next.size(); i++) {
+        mean.x += vertices_next[i].x - vertices[i].x;
+        mean.y += vertices_next[i].y - vertices[i].y;
+    }
+    mean.x = mean.x / vertices_next.size();
+    mean.y = mean.y / vertices_next.size();
+
+    for ( int i = 0; i < (int)vertices_next.size(); i++) {
+        vertices_next[i].x -= mean.x;
+        vertices_next[i].y -= mean.y;
+    }
+    */
 	
 	// copy the result for the next frame
 	vertices = vertices_next;

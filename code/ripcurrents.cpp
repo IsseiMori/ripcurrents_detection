@@ -17,6 +17,8 @@
 #include "fn_LK_all_pixel.hpp"
 #include "fn_streakline.hpp"
 #include "fn_philip.hpp"
+#include "fn_virtual_dyes.hpp"
+#include "fn_virtual_dyes_line.hpp"
 #include <time.h>
 
 using namespace std;
@@ -174,7 +176,7 @@ int main(int argc, char **argv)
 				pathline.runLK (10);
 			}
 			else if(argc == 4) {
-				pathline.runLK (stoi (argv[3]));
+				pathline.runLK (stoi (argv[3]), false);
 			}
 			else {
 				pathline.runLK (stoi (argv[3]), true);
@@ -184,6 +186,7 @@ int main(int argc, char **argv)
 		case 10: {
 			fn_LK_all_pixel lk = fn_LK_all_pixel (file_name, 480);
 			lk.run ();
+            break;
 		}
 		case 11: {
 			// ripcurrents video.mp4 11 v_num born_dist max_num
@@ -192,7 +195,9 @@ int main(int argc, char **argv)
 			// max_num : max number of vertices in a streamline. Exceeding this will be removed
 			fn_streakline streakline = fn_streakline (file_name, 480, stoi (argv[3]), stof (argv[4]), stoi (argv[5]));
 			streakline.run (true);
+            break;
 		}
+
 		// ripcurrents video.mp4 12 v_count(optional) h_count(optional)
 		// v_count h_count : number of buoys in vertical and horizontal (default 10)
 		// Output file name : infile_grid_buoy_LK_vcount_hcount
@@ -200,12 +205,59 @@ int main(int argc, char **argv)
 			cout << "Usage: ripcurrents video.mp4 1 v_count(optional) h_count(optional)" << endl;
 			fn_grid_arrow g_arrow = fn_grid_arrow (file_name, 480, stoi (argv[3]), stoi (argv[4]), stoi (argv[5]));
 			g_arrow.runLK(true);
+            break;
 		}
 		// Philip
 		case 13: {
 			fn_philip philip = fn_philip (file_name, 480);
 			philip.run(90, stoi (argv[3]), stoi (argv[4]));
+            break;
 		}
+        // Virtual Dyes
+        // int _birth_Rate
+        // int _max_num
+        // float _draw_r
+        case 14: {
+            fn_virtual_dyes vd = fn_virtual_dyes (file_name, 480, 
+                                                  stoi (argv[3]), 
+                                                  stof (argv[4]), 
+                                                  stoi (argv[5]));
+            vd.run(true);
+            break;
+        }
+		// Virtual Dyes Line
+        // int _birth_Rate
+        // int _max_num
+        // float _draw_r
+        case 15: {
+            fn_virtual_dyes_line vdl = fn_virtual_dyes_line (file_name, 480, 
+                                                  stoi (argv[3]), 
+                                                  stof (argv[4]), 
+                                                  stoi (argv[5]));
+            vdl.run(true);
+            break;
+        }
+        case 16: {
+            float data[2][2] = {{0,1},{-2,-3}};
+            Mat m = (Mat_<float>(2,2) << 0, -2, -2, -3);
+            cout << m << endl;
+            Mat e, v;
+            eigen(m, e, v);
+            cout << e << endl;
+            cout << e.at<float>(0) << endl;
+            cout << e.at<float>(1) << endl;
+            cout << v << endl;
+
+            float emax = max(abs(e.at<float>(0)), abs(e.at<float>(1)));
+            float emin = min(abs(e.at<float>(0)), abs(e.at<float>(1)));
+            float eratio = emax / emin;
+
+            cout << emax << endl;
+            cout << emin << endl;
+            cout << eratio << endl;
+
+            break;
+        }
 		default: {
 			break;
 		}

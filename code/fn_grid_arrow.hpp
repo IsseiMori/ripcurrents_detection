@@ -37,5 +37,7 @@ class fn_grid_arrow: public method {
 		void vertices_runFB (Mat& flow, Mat& out_img);
 		void filter_total_mean ();
 		void filter_row_col_mean ();
-		float filter_frequency ();
+		float filter_frequency6 ();
+		float filter_frequency8 ();
+		float filter_frequency10 ();
 };
