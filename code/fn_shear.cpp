@@ -18,12 +18,36 @@ fn_shear::fn_shear (string _file_name,
 }
 
 
-void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset) {
+void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int framecount) {
 
 	float max_frobeniusNorm_new = 0.0;
 
 	float global_theta = 0;
 	float global_magnitude = 0;
+
+	/*
+	ofstream outfile;
+	String filenamecsv = "eigen.csv";
+
+
+	if (framecount == 20) {
+		filenamecsv = "eigen20.csv";
+	}
+	else if (framecount == 100) {
+		filenamecsv = "eigen100.csv";
+	}
+	else if (framecount == 300) {
+		filenamecsv = "eigen300.csv";
+	}
+	else if (framecount == 600) {
+		filenamecsv = "eigen600.csv";
+	}
+	else if (framecount == 800) {
+		filenamecsv = "eigen800.csv";
+	}
+
+	outfile.open(filenamecsv, std::ios::app);
+	*/
 
 	// Iterate through all pixels except for the very edge
 	for ( int row = offset; row < current.rows - offset; row++ ) {
@@ -55,6 +79,13 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset) {
 			jacobian.at<float>(1,0) = right.y - left.y;
 			jacobian.at<float>(1,1) = above.y - below.y;
 
+			/*
+			cout << " " << endl;
+			cout << right << endl;
+			cout << left << endl;
+			cout << above << endl;
+			cout << below << endl;
+			*/
 
 
 			// printf("%f\n",sqrt(jacobian.dot(jacobian)));
@@ -71,9 +102,28 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset) {
             float emax = max(abs(e.at<float>(0)), abs(e.at<float>(1)));
             float emin = min(abs(e.at<float>(0)), abs(e.at<float>(1)));
             float eratio = emax / emin;
+			//float eratio = log(emax / emin) / log(1.01);
 
-            cout << emax << endl;
+			float fa = (emax - emin) / sqrt(emax * emax + emin * emin);
 
+			/*
+			if (framecount == 800 || framecount == 20
+				|| framecount == 100 || framecount == 300
+				|| framecount == 600 || framecount == 800) {
+				outfile << abs(right.x) << ","
+						<< abs(right.y) << ","
+						<< abs(left.x) << ","
+						<< abs(left.y) << ","
+						<< abs(above.x) << ","
+						<< abs(above.y) << ","
+						<< abs(below.x) << ","
+						<< abs(below.y) << ","
+						<< emax << ","
+						<< emin << ","
+						<< eratio << ","
+						<< fa << endl;
+			}*/
+			
 
 			//float frobeniusNorm = sqrt(sum(jacobian.mul(jacobian))[0]);
 			float frobeniusNorm = jacobianS.at<float>(0,0) * jacobianS.at<float>(0,0)
@@ -86,11 +136,40 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset) {
 			theta += theta < 0 ? 360 : 0;	// enforce strict positive angle
 			
 			// store vector data
-			//ptr2->x = 128 - dot*128/max_frobeniusNorm;
-			//ptr2->x = 128 - frobeniusNorm*128/max_frobeniusNorm;
-            ptr2->x = 128 - emax*128/max_frobeniusNorm;
-			ptr2->y = 255;
-            ptr2->z = 255;
+			// ptr2->x = 128 - dot*128/max_frobeniusNorm;
+			// ptr2->x = 128 - frobeniusNorm*128/max_frobeniusNorm;
+            // ptr2->x = 128 - emax*128/max_frobeniusNorm;
+			// ptr2->x = 128 - eratio*128/max_frobeniusNorm;
+			
+			// High anisotropy only
+			//if (fa > 0.9) ptr2->x = 255;
+			//else ptr2->x = 0;
+			
+			// High e1
+			if (emax > 0.8) {
+				ptr2->x = 0;
+				ptr2->y = 0;
+            	ptr2->z = 255;
+			}
+			
+			// ptr2->x = 128 - fa*128/max_frobeniusNorm;
+
+			// 0 is red
+
+			// high eratio
+			//if ( eratio >= 30) ptr2->x = 120;
+			//else ptr2->x = 0;
+
+			// Low e2
+			// if (emin < 0.08) ptr2->x = 120;
+			// else ptr2->x = 0;
+
+			// x hue 0-180 red to red
+			// y saturation 0-255
+			// z value 0-255
+			// ptr2->x = 120;
+			// ptr2->y = 255;
+            // ptr2->z = 255;
 			// ptr2->z = 255;
 			//if ( ptr2->z < 30 ) ptr2->z = 0;
 
@@ -98,7 +177,8 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset) {
 			if ( sqrt(ptr->x * ptr->x + ptr->y * ptr->y) > max_displacement ) max_displacement = sqrt(ptr->x * ptr->x + ptr->y * ptr->y);
 			//max_frobeniusNorm_new = max(frobeniusNorm, max_frobeniusNorm_new);
 			//max_frobeniusNorm_new = max(dot, max_frobeniusNorm_new);
-            max_frobeniusNorm_new = max(emax, max_frobeniusNorm_new);
+            // max_frobeniusNorm_new = max(eratio, max_frobeniusNorm_new);
+			max_frobeniusNorm_new = max(fa, max_frobeniusNorm_new);
 	
 			global_theta += ptr2->x * ptr2->z;
 			global_magnitude += ptr2->z;
@@ -112,7 +192,9 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset) {
 	max_frobeniusNorm = max_frobeniusNorm_new;
 
 	// show as hsv format
-	cvtColor(out_img, out_img, COLOR_HSV2BGR);
+	// cvtColor(out_img, out_img, COLOR_HSV2BGR);
+
+	// outfile.close();
 }
 
 void fn_shear::run (int buffer_size, int offset, bool isNorm) {
@@ -151,7 +233,7 @@ void fn_shear::run (int buffer_size, int offset, bool isNorm) {
 
 		update_buffer (buffer_size);
 
-		shearRateToColor (average_flow, out_img, offset);
+		shearRateToColor (average_flow, out_img, offset, framecount);
 		//vector_to_color (average_flow, out_img_overlay);
 
 		drawFrameCount(out_img, framecount);

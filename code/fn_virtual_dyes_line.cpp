@@ -26,10 +26,10 @@ void mouse_callback_virtual_dyes_line(int event, int x, int y, int, void *userda
 fn_virtual_dyes_line::fn_virtual_dyes_line (string file_name, 
 					int _height,
 					int _vnum,
-					float _born_distance,
+					int _birth_rate,
 					int _max_num): method(file_name, _height) {
 	vnum = _vnum;
-	born_distance = _born_distance;
+	birth_rate = _birth_rate;
 	max_num = _max_num;
 }
 
@@ -81,7 +81,10 @@ void fn_virtual_dyes_line::run (bool isNorm) {
 		Mat out_img;
 		resized_frame.copyTo (out_img);
 
-		for (auto& s : streaklines) s.runLK (prev_frame, curr_frame, out_img, born_distance, max_num, isNorm);
+		for (auto& s : streaklines) {
+			if (((framecount - 1) % birth_rate) == 0) s.add(max_num);
+			s.runLK (prev_frame, curr_frame, out_img, max_num, isNorm);
+		}
 
 		drawFrameCount(out_img, framecount);
 		
@@ -104,8 +107,13 @@ fn_virtual_dyes_line::streakline::streakline (Pixel2 _root) {
 	vertices.push_back (root);
 }
 
+void fn_virtual_dyes_line::streakline::add(int max_n) {
+    vertices.push_back(root);
+    // if (vertices.size() > max_n) vertices.erase(vertices.begin());
+}
 
-void fn_virtual_dyes_line::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, float born_d, int max_n, bool isNorm) {
+
+void fn_virtual_dyes_line::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, int max_n, bool isNorm) {
 
 	// return status values of calcOpticalFlowPyrLK
 	vector<uchar> status;
@@ -116,11 +124,13 @@ void fn_virtual_dyes_line::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_
 	vector<Pixel2> vertices_next;
 
 
+	/*
 	Pixel2 p = *(vertices.end() - 1);
 	if (sqrt(pow(p.x - root.x,2) + pow(p.y - root.y,2) > born_d)) {
 		vertices.push_back (root);
 		if ((int)(vertices.size()) > max_n) vertices.erase (vertices.begin()); 
 	}
+	*/
 
 
 	// run LK for all vertices

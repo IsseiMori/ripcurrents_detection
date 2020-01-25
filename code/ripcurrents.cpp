@@ -226,9 +226,9 @@ int main(int argc, char **argv)
             break;
         }
 		// Virtual Dyes Line
-        // int _birth_Rate
-        // int _max_num
-        // float _draw_r
+		// int vnum
+        // int birth_rate
+        // int max_num
         case 15: {
             fn_virtual_dyes_line vdl = fn_virtual_dyes_line (file_name, 480, 
                                                   stoi (argv[3]), 

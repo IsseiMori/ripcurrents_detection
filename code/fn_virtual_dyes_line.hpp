@@ -16,7 +16,7 @@ class fn_virtual_dyes_line: public method {
 
 		int vnum;
 		vector<Pixel2> roots;
-		float born_distance;
+		int birth_rate;
 		int max_num;
 
 		class streakline {
@@ -27,7 +27,8 @@ class fn_virtual_dyes_line: public method {
 				streakline (Pixel2 _root);
 
 				// run LK method on each vertex and draw lines
-				void runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, float born_d, int max_n, bool isNorm);
+				void runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, int max_n, bool isNorm);
+				void add(int max_n);
 
 		};
 
@@ -37,7 +38,7 @@ class fn_virtual_dyes_line: public method {
 		fn_virtual_dyes_line (string file_name,
         					  int _height, 
         					  int _vnum,
-        					  float _born_distance,
+        					  int _birthrate,
         					  int _max_num);
 		void run(bool isNorm);
 };
