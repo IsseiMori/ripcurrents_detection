@@ -142,10 +142,16 @@ void fn_virtual_dyes_line::run (bool isNorm) {
 		}
 		vec_buffer[current_buffer].clear ();
 		vertices_runLK (prev_frame, curr_frame, out_img, isNorm, framecount);
+
+		// count total v
+		int total_vnum = 0;
+		for (auto& s : streaklines) {
+			total_vnum += s.vertices.size();
+		}
 		
 		for (auto& s : streaklines) {
 			if ((framecount % birth_rate) == 0) s.add(max_num);
-			s.runLK (prev_frame, curr_frame, out_img, max_num, isNorm, opacity, dt);
+			s.runLK (prev_frame, curr_frame, out_img, max_num, isNorm, opacity, dt, total_vnum, vnum);
 		}
 
 		drawFrameCount(out_img, framecount);
@@ -253,13 +259,11 @@ void fn_virtual_dyes_line::streakline::vertices_filter(int max_id) {
 		float dx = root.x - iter->x;
 		float dy = root.y - iter->y;
 
-		float e_dt = 30;
+		float e_dt = 50;
 
 		if (sqrt(dx * dx + dy * dy) >  e_dt) {
 
 			int bin = static_cast<int>((atan2 (dx, dy) * 180 / M_PI + 180) / 360 * 6);
-			//cout << "bin : " << bin << endl;
-			//cout << "max bin : " << max_id << endl;
 			if (bin == max_id) {
 				iter = vertices.erase(iter);
 			}
@@ -364,9 +368,8 @@ void fn_virtual_dyes_line::streakline::add(int max_n) {
 }
 
 
-void fn_virtual_dyes_line::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, int max_n, bool isNorm, float opacity, float dt) {
+void fn_virtual_dyes_line::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, int max_n, bool isNorm, float opacity, float dt, int total_vnum, int vnum) {
 
-	cout << vertices.size() << endl;
 	if (vertices.size() == 0) return;
 
 	// return status values of calcOpticalFlowPyrLK
@@ -429,6 +432,8 @@ void fn_virtual_dyes_line::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_
 		}
 	}
 	*/
+
+	opacity = 1 / static_cast<float>(total_vnum) * static_cast<float>(vnum) / 2;
 
 	// draw edges
 	Mat overlay;

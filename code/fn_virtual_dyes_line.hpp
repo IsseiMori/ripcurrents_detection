@@ -36,14 +36,13 @@ class fn_virtual_dyes_line: public method {
 		int buffer_size;
 
 		class streakline {
-			private:
+			public:
 				Pixel2 root;
 				vector<Pixel2> vertices;
-			public: 
 				streakline (Pixel2 _root);
 
 				// run LK method on each vertex and draw lines
-				void runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, int max_n, bool isNorm, float opacity, float dt);
+				void runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, int max_n, bool isNorm, float opacity, float dt, int total_vnum, int vnum);
 				void add(int max_n);
 				void vertices_filter(int max_id);
 
