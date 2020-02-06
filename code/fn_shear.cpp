@@ -25,7 +25,7 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 	float global_theta = 0;
 	float global_magnitude = 0;
 
-	/*
+	
 	ofstream outfile;
 	String filenamecsv = "eigen.csv";
 
@@ -47,7 +47,7 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 	}
 
 	outfile.open(filenamecsv, std::ios::app);
-	*/
+	
 
 	// Iterate through all pixels except for the very edge
 	for ( int row = offset; row < current.rows - offset; row++ ) {
@@ -106,7 +106,7 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 
 			float fa = (emax - emin) / sqrt(emax * emax + emin * emin);
 
-			/*
+			
 			if (framecount == 800 || framecount == 20
 				|| framecount == 100 || framecount == 300
 				|| framecount == 600 || framecount == 800) {
@@ -122,7 +122,7 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 						<< emin << ","
 						<< eratio << ","
 						<< fa << endl;
-			}*/
+			}
 			
 
 			//float frobeniusNorm = sqrt(sum(jacobian.mul(jacobian))[0]);
@@ -146,7 +146,7 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 			//else ptr2->x = 0;
 			
 			// High e1
-			if (emax > 0.8) {
+			if (emax > 1) {
 				ptr2->x = 0;
 				ptr2->y = 0;
             	ptr2->z = 255;
@@ -194,7 +194,7 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 	// show as hsv format
 	// cvtColor(out_img, out_img, COLOR_HSV2BGR);
 
-	// outfile.close();
+	outfile.close();
 }
 
 void fn_shear::run (int buffer_size, int offset, bool isNorm) {
@@ -242,10 +242,11 @@ void fn_shear::run (int buffer_size, int offset, bool isNorm) {
 		addWeighted( out_img, 0.4, out_img_overlay, 0.6, 0.0, out_img_overlay);
 
 		// Draw color wheel
+		/*
         Mat mat = (Mat_<double>(2,3)<<1.0, 0.0, width - height/8, 0.0, 1.0, 0);
         warpAffine(color_wheel, out_img, mat, out_img.size(), INTER_LINEAR, cv::BORDER_TRANSPARENT);
 		warpAffine(color_wheel, out_img_overlay, mat, out_img_overlay.size(), INTER_LINEAR, cv::BORDER_TRANSPARENT);
-		
+		*/
 		
 		imshow ("shear color map", out_img);
 		imshow ("shear overlay", out_img_overlay);

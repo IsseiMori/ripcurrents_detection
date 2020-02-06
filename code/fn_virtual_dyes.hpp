@@ -18,6 +18,8 @@ class fn_virtual_dyes: public method {
 		int birth_rate;
         int max_num;
         float draw_r;
+		float opacity;
+		float dt;
 
 		class Dyes {
             public: 
@@ -29,7 +31,7 @@ class fn_virtual_dyes: public method {
                 void add(int max_n);
 
 				// run LK method on each vertex and draw lines
-				void runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, float r, bool isNorm);
+				void runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, float r, bool isNorm, float opacity, float dt);
 
 		};
 
@@ -39,6 +41,8 @@ class fn_virtual_dyes: public method {
 					 int _height, 
 					 int _birth_rate,
                      int _max_num,
-                     float _draw_r);
+                     float _draw_r,
+					 float _opacity,
+					 float _dt);
 		void run(bool isNorm);
 };

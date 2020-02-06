@@ -3,6 +3,7 @@
 #include <math.h>
 #include <vector>
 #include <fstream> 
+#include <time.h>
 
 #include <opencv2/opencv.hpp>
 
@@ -13,6 +14,33 @@ using namespace std;
 fn_dir_color::fn_dir_color (string _file_name, 
 							int _height)
 							: method(_file_name, _height) {
+}
+
+
+void fn_dir_color::justrun () {
+	cout << "Running color map" << endl;
+
+	ini_frame();
+
+	clock_t start = clock();
+
+	for (int framecount = 1; true; ++framecount) {
+		cout << "Frame " << framecount << endl;
+		if (read_frame()) break;
+
+		calc_FB ();
+
+		if ( waitKey(1) == 27) break;
+
+	}
+
+	clock_t end = clock();
+    const double time = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000.0;
+    printf("optflow time %lf[ms]\n", time);
+
+	// clean up
+	destroyAllWindows();
+
 }
 
 void fn_dir_color::run (int buffer_size) {
@@ -145,7 +173,7 @@ void fn_dir_color::run_dir (int buffer_size) {
 		vector_to_dir_color (average_flow, out_img);
 		drawFrameCount(out_img, framecount);
 
-		addWeighted( out_img, 1.0, out_img_overlay, 0.5, 0.0, out_img_overlay);	
+		addWeighted( out_img, 0.5, out_img_overlay, 0.5, 0.0, out_img_overlay);	
 
 		draw_colorwheel (out_img);
 		draw_colorwheel (out_img_overlay);	

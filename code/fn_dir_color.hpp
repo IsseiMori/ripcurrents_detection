@@ -17,4 +17,5 @@ class fn_dir_color: public method {
 		void run (int buffer_size = 1);
 		void run_dir (int buffer_size = 1);
 		void run_norm (int buffer_size = 1);
+		void justrun();
 };

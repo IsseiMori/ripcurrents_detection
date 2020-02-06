@@ -3,6 +3,7 @@
 #include <math.h>
 #include <vector>
 #include <fstream> 
+#include <time.h>
 
 #include <opencv2/opencv.hpp>
 
@@ -134,4 +135,50 @@ void fn_LK_all_pixel::run () {
 	video_output_overlay->release();
 	destroyAllWindows();
 
+}
+
+void fn_LK_all_pixel::justrun () {
+
+	ini_frame();
+
+	vector<Pixel2> vertices;
+	for (int col = 1; col <= height; ++col ) {
+		for (int row = 1; row <= width / 13.5; ++row ) {
+			vertices.push_back (Pixel2(row, col));
+		}
+	}
+
+	cout << height << " " << width << " " << vertices.size() << endl;
+
+	clock_t start = clock();
+
+	for (int framecount = 1; true; ++framecount) {
+		cout << "Frame " << framecount << endl;
+
+		if (read_frame()) break;
+
+		// return status values of calcOpticalFlowPyrLK
+		vector<uchar> status;
+		vector<float> err;
+		vector<Pixel2> vertices_next;
+
+		// run LK for all vertices
+		calcOpticalFlowPyrLK(prev_frame, curr_frame, vertices, 
+						 vertices_next, status, err, 
+						 Size(5,5),3, 
+						 TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.1), 
+						 10, 1e-4 );
+
+
+		curr_frame.copyTo (prev_frame);
+		if ( waitKey(1) == 27) break;
+
+	}
+
+	clock_t end = clock();
+    const double time = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000.0;
+    printf("optflow time %lf[ms]\n", time);
+
+	// clean up
+	destroyAllWindows();
 }

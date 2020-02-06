@@ -1,5 +1,7 @@
 #include <string>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 
 #include <opencv2/opencv.hpp>
 
@@ -22,10 +24,14 @@ fn_virtual_dyes::fn_virtual_dyes (string file_name,
 					int _height,
 					int _birth_rate,
 					int _max_num,
-                    float _draw_r): method(file_name, _height) {
+                    float _draw_r,
+					float _opacity,
+					float _dt): method(file_name, _height) {
 	birth_rate = _birth_rate;
 	max_num = _max_num;
     draw_r = _draw_r;
+	opacity = _opacity;
+	dt = _dt;
 }
 
 void fn_virtual_dyes::run (bool isNorm) {
@@ -49,11 +55,20 @@ void fn_virtual_dyes::run (bool isNorm) {
 
 	string n_str = isNorm? "norm_" : "";
 
+	ostringstream opacity_str;
+	opacity_str << fixed << setprecision(1) << opacity;
+
+	ostringstream dt_str;
+	dt_str << fixed << setprecision(1) << dt;
+
 	VideoWriter* video_output = ini_video_output (file_name +  "_virtual_dyes_" + n_str
 		+ to_string(static_cast<int>(root.x)) + "_" 
 		+ to_string(static_cast<int>(root.y)) + "_"
+		+ to_string(birth_rate) + "_"
 		+ to_string(max_num) + "_"
-        + to_string(draw_r));
+		+ to_string(draw_r) + "_"
+		+ opacity_str.str() + "_"
+		+ dt_str.str());
 
 	for (int framecount = 1; true; ++framecount) {
 
@@ -65,7 +80,7 @@ void fn_virtual_dyes::run (bool isNorm) {
 		resized_frame.copyTo (out_img);
 
         if (((framecount - 1) % birth_rate) == 0) dyes.add(max_num);
-		dyes.runLK (prev_frame, curr_frame, out_img, draw_r, isNorm);
+		dyes.runLK (prev_frame, curr_frame, out_img, draw_r, isNorm, opacity, dt);
 
 		drawFrameCount(out_img, framecount);
 		
@@ -92,7 +107,7 @@ void fn_virtual_dyes::Dyes::add(int max_n) {
     // if (vertices.size() > max_n) vertices.erase(vertices.begin());
 }
 
-void fn_virtual_dyes::Dyes::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, float r, bool isNorm) {
+void fn_virtual_dyes::Dyes::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, float r, bool isNorm, float opacity, float dt) {
 
 	// return status values of calcOpticalFlowPyrLK
 	vector<uchar> status;
@@ -123,8 +138,6 @@ void fn_virtual_dyes::Dyes::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, float 
 			float y = vertices_next[i].y - vertices[i].y;
 			
 			float theta = atan2 (y, x);
-
-			float dt = 0.5;
 		
 			vertices_next[i].x = vertices[i].x + cos(theta) * dt;
 			vertices_next[i].y = vertices[i].y + sin(theta) * dt;
@@ -145,7 +158,6 @@ void fn_virtual_dyes::Dyes::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, float 
 	*/
 
     Mat overlay;
-    double opacity = 0.03;
     for ( int i = 0; i < (int)vertices.size(); i++ ) {
         out_img.copyTo(overlay);
         circle(overlay,Point(vertices[i].x,vertices[i].y),r,CV_RGB(100,0,0),-1,8,0);

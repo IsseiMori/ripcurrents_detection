@@ -184,8 +184,11 @@ int main(int argc, char **argv)
 			break;
 		}
 		case 10: {
-			fn_LK_all_pixel lk = fn_LK_all_pixel (file_name, 480);
-			lk.run ();
+			//fn_LK_all_pixel lk = fn_LK_all_pixel (file_name, 480);
+			//lk.justrun ();
+
+			fn_dir_color dir = fn_dir_color (file_name, 480);
+			dir.justrun();
             break;
 		}
 		case 11: {
@@ -217,11 +220,15 @@ int main(int argc, char **argv)
         // int _birth_Rate
         // int _max_num
         // float _draw_r
+		// float opacity
+		// float dt
         case 14: {
             fn_virtual_dyes vd = fn_virtual_dyes (file_name, 480, 
                                                   stoi (argv[3]), 
                                                   stof (argv[4]), 
-                                                  stoi (argv[5]));
+                                                  stoi (argv[5]),
+												  stof (argv[6]),
+												  stof (argv[7]));
             vd.run(true);
             break;
         }
@@ -229,11 +236,15 @@ int main(int argc, char **argv)
 		// int vnum
         // int birth_rate
         // int max_num
+		// float opacity
+		// float dt
         case 15: {
             fn_virtual_dyes_line vdl = fn_virtual_dyes_line (file_name, 480, 
                                                   stoi (argv[3]), 
                                                   stof (argv[4]), 
-                                                  stoi (argv[5]));
+                                                  stoi (argv[5]),
+												  stof (argv[6]),
+												  stof (argv[7]));
             vdl.run(true);
             break;
         }
