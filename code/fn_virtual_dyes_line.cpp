@@ -146,11 +146,11 @@ void fn_virtual_dyes_line::run (bool isNorm) {
 		// count total v
 		int total_vnum = 0;
 		for (auto& s : streaklines) {
+			if ((framecount % birth_rate) == 0) s.add(max_num);
 			total_vnum += s.vertices.size();
 		}
 		
 		for (auto& s : streaklines) {
-			if ((framecount % birth_rate) == 0) s.add(max_num);
 			s.runLK (prev_frame, curr_frame, out_img, max_num, isNorm, opacity, dt, total_vnum, vnum);
 		}
 
@@ -254,6 +254,9 @@ int fn_virtual_dyes_line::filter_frequency6 () {
 
 void fn_virtual_dyes_line::streakline::vertices_filter(int max_id) {
 
+	int max_near1 = (max_id + 1 > 5) ? max_id - 5 : max_id + 1;
+	int max_near2 = (max_id + 5 > 5) ? max_id - 1 : max_id + 5;
+
 	for (auto iter = vertices.begin(); iter != vertices.end();) {
 
 		float dx = root.x - iter->x;
@@ -264,7 +267,7 @@ void fn_virtual_dyes_line::streakline::vertices_filter(int max_id) {
 		if (sqrt(dx * dx + dy * dy) >  e_dt) {
 
 			int bin = static_cast<int>((atan2 (dx, dy) * 180 / M_PI + 180) / 360 * 6);
-			if (bin == max_id) {
+			if (bin == max_id || bin == max_near1 || bin == max_near2) {
 				iter = vertices.erase(iter);
 			}
 			else {
@@ -433,7 +436,7 @@ void fn_virtual_dyes_line::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_
 	}
 	*/
 
-	opacity = 1 / static_cast<float>(total_vnum) * static_cast<float>(vnum) / 2;
+	opacity = 5 / static_cast<float>(total_vnum) ;
 
 	// draw edges
 	Mat overlay;

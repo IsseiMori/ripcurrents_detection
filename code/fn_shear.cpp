@@ -3,6 +3,7 @@
 #include <math.h>
 #include <vector>
 #include <fstream> 
+#include <algorithm>
 
 #include <opencv2/opencv.hpp>
 
@@ -26,6 +27,7 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 	float global_magnitude = 0;
 
 	
+	/*
 	ofstream outfile;
 	String filenamecsv = "eigen.csv";
 
@@ -47,6 +49,7 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 	}
 
 	outfile.open(filenamecsv, std::ios::app);
+	*/
 	
 
 	// Iterate through all pixels except for the very edge
@@ -107,6 +110,7 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 			float fa = (emax - emin) / sqrt(emax * emax + emin * emin);
 
 			
+			/*
 			if (framecount == 800 || framecount == 20
 				|| framecount == 100 || framecount == 300
 				|| framecount == 600 || framecount == 800) {
@@ -123,7 +127,7 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 						<< eratio << ","
 						<< fa << endl;
 			}
-			
+			*/
 
 			//float frobeniusNorm = sqrt(sum(jacobian.mul(jacobian))[0]);
 			float frobeniusNorm = jacobianS.at<float>(0,0) * jacobianS.at<float>(0,0)
@@ -142,8 +146,13 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 			// ptr2->x = 128 - eratio*128/max_frobeniusNorm;
 			
 			// High anisotropy only
-			//if (fa > 0.9) ptr2->x = 255;
-			//else ptr2->x = 0;
+			/*
+			if (fa > 0.9) {
+				ptr2->x = 0;
+				ptr2->y = 0;
+            	ptr2->z = 255;
+			}
+			*/
 			
 			// High e1
 			if (emax > 1) {
@@ -157,8 +166,13 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 			// 0 is red
 
 			// high eratio
-			//if ( eratio >= 30) ptr2->x = 120;
-			//else ptr2->x = 0;
+			/*
+			if ( eratio >= 30) {
+				ptr2->x = 0;
+				ptr2->y = 0;
+            	ptr2->z = 255;
+			}
+			*/
 
 			// Low e2
 			// if (emin < 0.08) ptr2->x = 120;
@@ -194,7 +208,64 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 	// show as hsv format
 	// cvtColor(out_img, out_img, COLOR_HSV2BGR);
 
-	outfile.close();
+	// outfile.close();
+}
+
+void fn_shear::shearKernelToColor(Mat& current, Mat& out_img, int offset, int framecount) {
+
+	float max_dot_new = 0;
+	float min_dot_new = 0;
+
+	// Iterate through all pixels except for the very edge
+	for ( int row = offset; row < current.rows - offset; row++ ) {
+		Pixel2* ptr = current.ptr<Pixel2>(row, offset);
+		Pixelc* ptr2 = out_img.ptr<Pixelc>(row, offset);
+
+		for ( int col = offset; col < current.cols - offset; col++ ) {
+
+			/*
+			 *  |a b c|
+			 *  |d e f|
+			 *  |g e i|
+			 * 
+			 * 	dot = [dot(a,e) + dot(b,e) + ... dot(i,e)] / 8
+			*/
+			Pixel2 center_ptr = current.at<Pixel2>(row, col);
+			float dot_sum = 0;
+			for (int i = row - offset; i <= row + offset; ++i) {
+				for (int j = col - offset; j <= col + offset; ++j) {
+					if (i != row && j != col) {
+						Pixel2 n_ptr = current.at<Pixel2>(i, j);
+						// cout << n_ptr.dot(center_ptr) << endl;
+						dot_sum += n_ptr.dot(center_ptr);
+					}
+				}
+			}
+			float dot = dot_sum / static_cast<float>((offset + 1) * (offset + 1) - 1);
+
+			max_dot_new = max(max_dot_new, dot);
+			min_dot_new = min(min_dot_new, dot);
+
+			float range = max_dot - min_dot;
+
+			float h = 128 * (max_dot - dot) / range;
+			if (h < 0) h = 0;
+			if (h > 128) h = 128;
+			ptr2->x = h;
+			ptr2->y = 255;
+			ptr2->z = 255;
+
+
+			ptr++;
+			ptr2++;
+		}
+	}
+
+	max_dot = max_dot_new;
+	min_dot = min_dot_new;
+
+	// show as hsv format
+	cvtColor(out_img, out_img, COLOR_HSV2BGR);
 }
 
 void fn_shear::run (int buffer_size, int offset, bool isNorm) {
@@ -233,7 +304,8 @@ void fn_shear::run (int buffer_size, int offset, bool isNorm) {
 
 		update_buffer (buffer_size);
 
-		shearRateToColor (average_flow, out_img, offset, framecount);
+		//shearRateToColor (average_flow, out_img, offset, framecount);
+		shearKernelToColor (average_flow, out_img, offset, framecount);
 		//vector_to_color (average_flow, out_img_overlay);
 
 		drawFrameCount(out_img, framecount);

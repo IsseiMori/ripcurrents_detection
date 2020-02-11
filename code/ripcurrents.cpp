@@ -269,6 +269,17 @@ int main(int argc, char **argv)
 
             break;
         }
+		// ripcurrents video.mp4 7 buffer_size(optional)
+		// buffer_size : number of frames to average (default 1)
+		// Output file name : infile_norm_color_buffersize_color
+		// Output file name : infile_norm_color_buffersize_overlay
+		case 17: {
+			fn_dir_color dir_color = fn_dir_color (file_name, 480);
+			if (argc >= 5 ) {
+				dir_color.run_norm_filter (stoi (argv[3]), stoi (argv[4]));
+			}
+			break;
+		}
 		default: {
 			break;
 		}
