@@ -57,23 +57,23 @@ void fn_dir_color::run (int buffer_size) {
 
 		if (read_frame()) break;
 
-		calc_FB ();
+		// calc_FB ();
 
 		Mat out_img;
 		Mat out_img_overlay;
 		resized_frame.copyTo(out_img);
 		resized_frame.copyTo(out_img_overlay);
 
-		eliminate_std (5);
+		/*eliminate_std (5);
 
 		update_buffer (buffer_size);
 
-		vector_to_color (average_flow, out_img);
+		vector_to_color (average_flow, out_img);*/
 		drawFrameCount(out_img, framecount);
 
 		addWeighted( out_img, 1.0, out_img_overlay, 1.0, 0.0, out_img_overlay);
 
-		draw_colorwheel (out_img);
+		// draw_colorwheel (out_img);
 		draw_colorwheel (out_img_overlay);
 		
 		

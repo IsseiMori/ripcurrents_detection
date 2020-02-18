@@ -154,6 +154,11 @@ void fn_virtual_dyes_line::run (bool isNorm) {
 			s.runLK (prev_frame, curr_frame, out_img, max_num, isNorm, opacity, dt, total_vnum, vnum);
 		}
 
+		// Draw gray lines as initial position of the VDL line
+		for (auto pixels : vec_and_pixel.first) {
+			line(out_img,Point(pixels.first.x,pixels.first.y),Point(pixels.second.x,pixels.second.y),CV_RGB(50,50,50),3,8,0);
+		}
+
 		drawFrameCount(out_img, framecount);
 		
 		imshow ("timelines", out_img);
@@ -266,7 +271,9 @@ void fn_virtual_dyes_line::streakline::vertices_filter(int max_id) {
 
 		if (sqrt(dx * dx + dy * dy) >  e_dt) {
 
+			// No +180 for side way filtering. Bug?
 			int bin = static_cast<int>((atan2 (dx, dy) * 180 / M_PI + 180) / 360 * 6);
+			// int bin = static_cast<int>((atan2 (dx, dy) * 180 / M_PI ) / 360 * 6);
 			if (bin == max_id || bin == max_near1 || bin == max_near2) {
 				iter = vertices.erase(iter);
 			}
@@ -367,7 +374,7 @@ fn_virtual_dyes_line::streakline::streakline (Pixel2 _root) {
 
 void fn_virtual_dyes_line::streakline::add(int max_n) {
     vertices.push_back(root);
-    if (vertices.size() > max_n) vertices.erase(vertices.begin());
+    if (max_n != 0 && vertices.size() > max_n) vertices.erase(vertices.begin());
 }
 
 
@@ -436,14 +443,24 @@ void fn_virtual_dyes_line::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_
 	}
 	*/
 
-	opacity = 5 / static_cast<float>(total_vnum) ;
+	//opacity = 5 / static_cast<float>(total_vnum) ;
 
 	// draw edges
+	Mat overlay;
+	out_img.copyTo(overlay);
+    for ( int i = 0; i < (int)vertices.size(); i++ ) {
+        circle(overlay,Point(vertices[i].x,vertices[i].y),40,CV_RGB(100,0,0),-1,8,0);
+    }
+	addWeighted(overlay, 0.4, out_img, 1 - 0.4, 0, out_img, -1);
+
+
+/*
 	Mat overlay;
     for ( int i = 0; i < (int)vertices.size(); i++ ) {
         out_img.copyTo(overlay);
         circle(overlay,Point(vertices[i].x,vertices[i].y),40,CV_RGB(100,0,0),-1,8,0);
         addWeighted(overlay, opacity, out_img, 1 - opacity, 0, out_img, -1);
     }
+    //overlay.copyTo(out_img);*/
 }
 
