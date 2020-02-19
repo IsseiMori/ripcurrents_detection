@@ -89,7 +89,7 @@ void fn_timeline::run (bool isNorm) {
 
 		// Draw gray lines as initial position of the timelines
 		for (auto pixels : start_end) {
-			line(out_img,Point(pixels.first.x,pixels.first.y),Point(pixels.second.x,pixels.second.y),CV_RGB(50,50,50),3,8,0);
+			line(out_img,Point(pixels.first.x,pixels.first.y),Point(pixels.second.x,pixels.second.y),CV_RGB(50,50,50),2,8,0);
 		}
 
 

@@ -156,7 +156,7 @@ void fn_virtual_dyes_line::run (bool isNorm) {
 
 		// Draw gray lines as initial position of the VDL line
 		for (auto pixels : vec_and_pixel.first) {
-			line(out_img,Point(pixels.first.x,pixels.first.y),Point(pixels.second.x,pixels.second.y),CV_RGB(50,50,50),3,8,0);
+			line(out_img,Point(pixels.first.x,pixels.first.y),Point(pixels.second.x,pixels.second.y),CV_RGB(50,50,50),2,8,0);
 		}
 
 		drawFrameCount(out_img, framecount);

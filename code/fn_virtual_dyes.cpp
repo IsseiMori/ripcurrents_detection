@@ -165,7 +165,8 @@ void fn_virtual_dyes::Dyes::runLK(Mat& u_prev, Mat& u_curr, Mat& out_img, float 
     }
 
 	// Draw gray point as initial position of the dye
-	circle(out_img,Point(root.x,root.y),10,CV_RGB(50,50,50),-1,8,0);
+	line(out_img,Point(root.x-5,root.y-5),Point(root.x+5,root.y+5),CV_RGB(50,50,50),2,8,0);
+	line(out_img,Point(root.x-5,root.y+5),Point(root.x+5,root.y-5),CV_RGB(50,50,50),2,8,0);
 
     //overlay.copyTo(out_img);
 
