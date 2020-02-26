@@ -134,16 +134,6 @@ void fn_grid_arrow::runFB () {
 
 }
 
-/*
-right 0 degree
-and clockwise
-
-vector alignment
-0 1 2
-3 4 5
-
-*/
-
 
 void fn_grid_arrow::filter_total_mean () {
 
@@ -189,6 +179,17 @@ void fn_grid_arrow::filter_row_col_mean () {
 	}
 
 }
+
+
+/*
+right 0 degree
+and clockwise
+
+vector alignment
+0 1 2
+3 4 5
+
+*/
 
 
 float fn_grid_arrow::filter_frequency6 () {

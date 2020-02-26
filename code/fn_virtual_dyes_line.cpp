@@ -264,15 +264,15 @@ void fn_virtual_dyes_line::streakline::vertices_filter(int max_id) {
 
 	for (auto iter = vertices.begin(); iter != vertices.end();) {
 
-		float dx = root.x - iter->x;
-		float dy = root.y - iter->y;
+		float dx = iter->x - root.x;
+		float dy = iter->y - root.y;
 
 		float e_dt = 50;
 
 		if (sqrt(dx * dx + dy * dy) >  e_dt) {
 
-			// No +180 for side way filtering. Bug?
-			int bin = static_cast<int>((atan2 (dx, dy) * 180 / M_PI + 180) / 360 * 6);
+			// No +180 for side way filtering. Bug resolved?
+			int bin = static_cast<int>((atan2 (dy, dx) * 180 / M_PI + 180) / 360 * 6);
 			// int bin = static_cast<int>((atan2 (dx, dy) * 180 / M_PI ) / 360 * 6);
 			if (bin == max_id || bin == max_near1 || bin == max_near2) {
 				iter = vertices.erase(iter);
@@ -344,6 +344,7 @@ void fn_virtual_dyes_line::vertices_runLK (Mat u_prev, Mat u_curr, Mat& out_img,
 		vec_buffer[current_buffer].push_back (Pixel2(xp,yp) * 200);
 		average_vec[i] += (Pixel2(xp,yp) * 200);
 
+		// theta is 0 right and 360 to clockwise
 		relative_vec[i] = Pixel2(xp,yp);
 		theta_vec[i] = atan2 (average_vec[i].y, average_vec[i].x) * 180 / M_PI;
 	}
@@ -445,6 +446,7 @@ void fn_virtual_dyes_line::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_
 
 	//opacity = 5 / static_cast<float>(total_vnum) ;
 
+	/*
 	// draw edges
 	Mat overlay;
 	out_img.copyTo(overlay);
@@ -452,15 +454,15 @@ void fn_virtual_dyes_line::streakline::runLK(Mat& u_prev, Mat& u_curr, Mat& out_
         circle(overlay,Point(vertices[i].x,vertices[i].y),40,CV_RGB(100,0,0),-1,8,0);
     }
 	addWeighted(overlay, 0.4, out_img, 1 - 0.4, 0, out_img, -1);
+	*/
 
 
-/*
 	Mat overlay;
     for ( int i = 0; i < (int)vertices.size(); i++ ) {
         out_img.copyTo(overlay);
         circle(overlay,Point(vertices[i].x,vertices[i].y),40,CV_RGB(100,0,0),-1,8,0);
         addWeighted(overlay, opacity, out_img, 1 - opacity, 0, out_img, -1);
     }
-    //overlay.copyTo(out_img);*/
+    //overlay.copyTo(out_img);
 }
 

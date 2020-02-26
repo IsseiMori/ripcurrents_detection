@@ -222,13 +222,15 @@ void fn_shear::shearRateToColor(Mat& current, Mat& out_img, int offset, int fram
 	// outfile.close();
 }
 
-float top3 = 0;
 float top5 = 0;
-float top8 = 0;
 float top10 = 0;
+float top15 = 0;
 float top20 = 0;
+float top25 = 0;
 float top30 = 0;
+float top35 = 0;
 float top40 = 0;
+float top45 = 0;
 float top50 = 0;
 
 void fn_shear::shearRateToColorMulti(Mat& current, Mat& out_img1,Mat& out_img2,Mat& out_img3,Mat& out_img4,Mat& out_img5,Mat& out_img6, int offset, int framecount) {
@@ -426,60 +428,109 @@ void fn_shear::shearRateToColorMulti(Mat& current, Mat& out_img1,Mat& out_img2,M
             	ptr26->z = 255;
 			}*/
 
-			// High e1 top 5% red
-			if (emax > top3) {
-				ptr21->x = 0;
-				ptr21->y = 0;
-            	ptr21->z = 255;
+
+			// 5, 10, 25, 50
+			// rgb(189,49,40)
+			if (emax > top5) {
+				ptr21->x = 40;
+				ptr21->y = 49;
+            	ptr21->z = 189;
+
+				ptr22->x = 40;
+				ptr22->y = 49;
+            	ptr22->z = 189;
+
+				ptr23->x = 40;
+				ptr23->y = 49;
+            	ptr23->z = 189;
+
+				ptr24->x = 40;
+				ptr24->y = 49;
+            	ptr24->z = 189;
 			}
 
-			// High e1 top 10% orenge
-			else if (emax > top5) {
-				ptr21->x = 0;
-				ptr21->y = 128;
-            	ptr21->z = 255;
-			}
-
-			// High e1 top 20% yellow
-			else if (emax > top8) {
-				ptr21->x = 0;
-				ptr21->y = 255;
-            	ptr21->z = 255;
-			}
-
-			// High e1 top 30%
+			// rgb(233,63,51)
 			else if (emax > top10) {
-				ptr21->x = 0;
-				ptr21->y = 255;
-            	ptr21->z = 0;
+				ptr21->x = 51;
+				ptr21->y = 63;
+            	ptr21->z = 233;
+
+				ptr22->x = 51;
+				ptr22->y = 63;
+            	ptr22->z = 233;
+
+				ptr23->x = 51;
+				ptr23->y = 63;
+            	ptr23->z = 233;
 			}
 
-			// High e1 top 40% green
+			// rgb(241,150,51)
+			else if (emax > top15) {
+				ptr21->x = 51;
+				ptr21->y = 150;
+            	ptr21->z = 241;
+
+				ptr22->x = 51;
+				ptr22->y = 150;
+            	ptr22->z = 241;
+			}
+
+			// rgb(248,245,47)
 			else if (emax > top20) {
-				ptr21->x = 100;
-				ptr21->y = 255;
-            	ptr21->z = 0;
+				ptr21->x = 47;
+				ptr21->y = 245;
+            	ptr21->z = 248;
+
+				ptr22->x = 47;
+				ptr22->y = 245;
+            	ptr22->z = 248;
 			}
 
-			// High e1 top 50% light blue green
+			// rgb(157,243,83)
+			else if (emax > top25) {
+				ptr21->x = 83;
+				ptr21->y = 243;
+            	ptr21->z = 157;
+
+				ptr22->x = 83;
+				ptr22->y = 243;
+            	ptr22->z = 157;
+			}
+
+			// rgb(124,245,167)
 			else if (emax > top30) {
-				ptr21->x = 200;
-				ptr21->y = 255;
-            	ptr21->z = 0;
+				ptr21->x = 167;
+				ptr21->y = 245;
+            	ptr21->z = 124;
 			}
 
-			// High e1 top 50% light blue
+			// rgb(105,229,250)
+			else if (emax > top35) {
+				ptr21->x = 250;
+				ptr21->y = 229;
+            	ptr21->z = 105;
+			}
+
+			// rgb(3,123,251)
 			else if (emax > top40) {
-				ptr21->x = 255;
-				ptr21->y = 255;
-            	ptr21->z = 0;
+				ptr21->x = 251;
+				ptr21->y = 123;
+            	ptr21->z = 3;
 			}
 
-			// High e1 top 50% Blue
+			// rgb(34,74,251)
+			else if (emax > top45) {
+				ptr21->x = 251;
+				ptr21->y = 74;
+            	ptr21->z = 34;
+			}
+
+			// rgb(21,51,182)
+			// BGR
 			else if (emax > top50) {
-				ptr21->x = 255;
-				ptr21->y = 128;
-            	ptr21->z = 0;
+				ptr21->x = 182;
+				ptr21->y = 51;
+            	ptr21->z = 21;
 			}
 			
 			// ptr2->x = 128 - fa*128/max_frobeniusNorm;
@@ -536,21 +587,19 @@ void fn_shear::shearRateToColorMulti(Mat& current, Mat& out_img1,Mat& out_img2,M
 	sort(emax_vec.begin(), emax_vec.end());
 
 	float all_count = (current.rows - 2 * offset) * (current.cols - 2 * offset);
-	top3  = emax_vec[static_cast<int>(all_count * 0.98)];
 	top5  = emax_vec[static_cast<int>(all_count * 0.95)];
-	top8  = emax_vec[static_cast<int>(all_count * 0.92)];
 	top10 = emax_vec[static_cast<int>(all_count * 0.9)];
+	top15 = emax_vec[static_cast<int>(all_count * 0.85)];
 	top20 = emax_vec[static_cast<int>(all_count * 0.8)];
+	top25 = emax_vec[static_cast<int>(all_count * 0.75)];
 	top30 = emax_vec[static_cast<int>(all_count * 0.7)];
+	top35 = emax_vec[static_cast<int>(all_count * 0.65)];
 	top40 = emax_vec[static_cast<int>(all_count * 0.6)];
+	top45 = emax_vec[static_cast<int>(all_count * 0.55)];
 	top50 = emax_vec[static_cast<int>(all_count * 0.5)];
 
-	cout << "top  3% : " << top3  << " < " << endl;
-	cout << "top  5% : " << top5  << " < " << endl;
-	cout << "top  8% : " << top8  << " < " << endl;
-	cout << "top 10% : " << top10 << " < " << endl;
-	cout << "top 20% : " << top20 << " < " << endl;
-	cout << "top 30% : " << top30 << " < " << endl;
+
+	cout << "top5 " << top5 << endl;
 
 	max_e1 = max_e1_new;
 	min_e1 = min_e1_new;
